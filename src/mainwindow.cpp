@@ -112,8 +112,9 @@ void MainWindow::slots_serialRxCallback()
  */
 void MainWindow::on_btnReset_clicked()
 {
-    QString tmp = "23 01 04 08";
+    QString tmp = "23 01 04";
     QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+    this->appendCRC(txBuf);
     currentPort->write(txBuf, txBuf.size());
     currentPort->waitForBytesWritten();
 //    tim->setInterval(3000);
@@ -125,8 +126,9 @@ void MainWindow::on_btnReset_clicked()
  */
 void MainWindow::on_btnStart_clicked()
 {
-    QString tmp = "23 01 01 05";
+    QString tmp = "23 01 01";
     QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+    this->appendCRC(txBuf);
     currentPort->write(txBuf,txBuf.size());
     currentPort->waitForBytesWritten();
     ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
@@ -136,8 +138,9 @@ void MainWindow::on_btnStart_clicked()
  */
 void MainWindow::on_btnStop_clicked()
 {
-    QString tmp = "23 01 02 06";
+    QString tmp = "23 01 02";
     QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+    this->appendCRC(txBuf);
     currentPort->write(txBuf,txBuf.size());
     currentPort->waitForBytesWritten();
     ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
@@ -148,8 +151,9 @@ void MainWindow::on_btnStop_clicked()
  */
 void MainWindow::on_btnStartStop_clicked()
 {
-    QString tmp = "23 01 06 0A";
+    QString tmp = "23 01 06";
     QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+    this->appendCRC(txBuf);
     currentPort->write(txBuf,txBuf.size());
     currentPort->waitForBytesWritten();
     ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
@@ -159,8 +163,9 @@ void MainWindow::on_btnStartStop_clicked()
  */
 void MainWindow::on_btnAlignment_clicked()
 {
-    QString tmp = "23 01 08 0C";
+    QString tmp = "23 01 08";
     QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+    this->appendCRC(txBuf);
     currentPort->write(txBuf,txBuf.size());
     currentPort->waitForBytesWritten();
     ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
@@ -324,12 +329,11 @@ void MainWindow::appendCRC(QByteArray &buffer)
     qint32 size = buffer.size();
     quint16 sum = 0;
     qint32 i = 0;
-    quint8 crc = 0;
     while(size--){
         sum += (quint8)buffer.at(i++);
     }
     sum = ((sum & 0xFF00)>>8) + (sum & 0x00FF);
-    crc = (quint8)sum;
+    quint8 crc = (quint8)sum;
     buffer.append(crc);
 }
 
