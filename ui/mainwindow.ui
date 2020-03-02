@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>658</width>
-    <height>287</height>
+    <width>675</width>
+    <height>355</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -15,20 +15,7 @@
   </property>
   <widget class="QWidget" name="centralWidget">
    <layout class="QGridLayout" name="gridLayout_2">
-    <item row="1" column="1">
-     <spacer name="verticalSpacer">
-      <property name="orientation">
-       <enum>Qt::Vertical</enum>
-      </property>
-      <property name="sizeHint" stdset="0">
-       <size>
-        <width>20</width>
-        <height>40</height>
-       </size>
-      </property>
-     </spacer>
-    </item>
-    <item row="0" column="1">
+    <item row="1" column="2">
      <widget class="QGroupBox" name="QGBSerialConfig">
       <property name="enabled">
        <bool>true</bool>
@@ -258,10 +245,231 @@
       </widget>
      </widget>
     </item>
-    <item row="0" column="2" rowspan="2">
+    <item row="3" column="2" colspan="3">
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QPushButton" name="btnOtherCMD">
+        <property name="text">
+         <string>发送</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cbbMotorNum">
+        <item>
+         <property name="text">
+          <string>电机_默认</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Motor 1</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>Motor 2</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <widget class="QComboBox" name="cbbFrameID">
+        <property name="minimumSize">
+         <size>
+          <width>125</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>125100</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <item>
+         <property name="text">
+          <string>FrameID</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SET_REG</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>GET_REG</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>EXECUTE_CMD</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>STORE_TOADDR</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>LOAD_FROMADDR</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>GET_BOARD_INFO</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SET_SPEED_RAMP</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>GET_REVUP_DATA</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SET_REVUP_DATA</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SET_CURRENT_REF</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>GET_MP_INFO</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>GET_FW_VERSION</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SET_TORQUE_RAMP</string>
+         </property>
+        </item>
+        <item>
+         <property name="text">
+          <string>SET_POSITION_CMD</string>
+         </property>
+        </item>
+       </widget>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_2">
+        <item>
+         <widget class="QComboBox" name="cbbRegAddr">
+          <property name="enabled">
+           <bool>false</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QComboBox" name="cbbCMD">
+          <item>
+           <property name="text">
+            <string>CMD</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>START_MOTOR</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>STOP_MOTOR</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>STOP_RAMP</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>RESET</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PING</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>START_STOP</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>FAULT_ACK</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>ENCODER_ALIGN</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>IQDREF_CLEAR</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PFC_ENABLE</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PFC_DISABLE</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>PFC_FAULT_ACK</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>SC_START</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>SC_STOP</string>
+           </property>
+          </item>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QVBoxLayout" name="verticalLayout_3">
+        <item>
+         <widget class="QLineEdit" name="txtOtherCMD"/>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="txtOtherRx"/>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </item>
+    <item row="1" column="3">
      <widget class="QGroupBox" name="groupBox_2">
       <property name="title">
-       <string>通用设置</string>
+       <string>基础控制</string>
       </property>
       <layout class="QVBoxLayout" name="verticalLayout">
        <item>
@@ -317,7 +525,7 @@
        <item>
         <widget class="QSpinBox" name="spbSpeed">
          <property name="enabled">
-          <bool>false</bool>
+          <bool>true</bool>
          </property>
          <property name="buttonSymbols">
           <enum>QAbstractSpinBox::NoButtons</enum>
@@ -339,16 +547,16 @@
       </layout>
      </widget>
     </item>
-    <item row="0" column="3" rowspan="2">
+    <item row="1" column="4">
      <widget class="QGroupBox" name="groupBox">
       <property name="title">
        <string>位置控制</string>
       </property>
-      <layout class="QGridLayout" name="gridLayout">
-       <item row="0" column="0">
-        <widget class="QPushButton" name="btnPosKp">
+      <layout class="QGridLayout" name="gridLayout_4">
+       <item row="1" column="0">
+        <widget class="QPushButton" name="btnPosKi">
          <property name="text">
-          <string>Kd</string>
+          <string>Ki</string>
          </property>
         </widget>
        </item>
@@ -362,10 +570,10 @@
          </property>
         </widget>
        </item>
-       <item row="1" column="0">
-        <widget class="QPushButton" name="btnPosKi">
+       <item row="0" column="0">
+        <widget class="QPushButton" name="btnPosKp">
          <property name="text">
-          <string>Ki</string>
+          <string>Kd</string>
          </property>
         </widget>
        </item>
@@ -386,6 +594,13 @@
          </property>
         </widget>
        </item>
+       <item row="3" column="0">
+        <widget class="QPushButton" name="btnRamp">
+         <property name="text">
+          <string>Ramp</string>
+         </property>
+        </widget>
+       </item>
        <item row="2" column="1">
         <widget class="QSpinBox" name="spbPosKd">
          <property name="minimum">
@@ -396,29 +611,23 @@
          </property>
         </widget>
        </item>
-       <item row="3" column="0">
-        <widget class="QPushButton" name="btnRamp">
-         <property name="text">
-          <string>Ramp</string>
-         </property>
-        </widget>
-       </item>
        <item row="3" column="1">
-        <layout class="QVBoxLayout" name="verticalLayout_2">
-         <item>
-          <widget class="QSpinBox" name="spbPosTarget">
-           <property name="buttonSymbols">
-            <enum>QAbstractSpinBox::NoButtons</enum>
-           </property>
-           <property name="minimum">
-            <number>-99999999</number>
-           </property>
-           <property name="maximum">
-            <number>999999999</number>
+        <layout class="QGridLayout" name="gridLayout">
+         <item row="0" column="0">
+          <widget class="QLabel" name="label">
+           <property name="text">
+            <string>目标值</string>
            </property>
           </widget>
          </item>
-         <item>
+         <item row="2" column="0">
+          <widget class="QLabel" name="label_2">
+           <property name="text">
+            <string>周期</string>
+           </property>
+          </widget>
+         </item>
+         <item row="2" column="1">
           <widget class="QSpinBox" name="spbPosTime">
            <property name="buttonSymbols">
             <enum>QAbstractSpinBox::NoButtons</enum>
@@ -428,10 +637,49 @@
            </property>
           </widget>
          </item>
+         <item row="0" column="1">
+          <widget class="QDoubleSpinBox" name="spbPosTarget">
+           <property name="buttonSymbols">
+            <enum>QAbstractSpinBox::NoButtons</enum>
+           </property>
+           <property name="maximum">
+            <double>100000000.000000000000000</double>
+           </property>
+          </widget>
+         </item>
         </layout>
+       </item>
+       <item row="4" column="0" colspan="2">
+        <widget class="QLineEdit" name="txtCurrentPos"/>
        </item>
       </layout>
      </widget>
+    </item>
+    <item row="2" column="2">
+     <spacer name="verticalSpacer">
+      <property name="orientation">
+       <enum>Qt::Vertical</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>20</width>
+        <height>40</height>
+       </size>
+      </property>
+     </spacer>
+    </item>
+    <item row="1" column="5">
+     <spacer name="horizontalSpacer">
+      <property name="orientation">
+       <enum>Qt::Horizontal</enum>
+      </property>
+      <property name="sizeHint" stdset="0">
+       <size>
+        <width>40</width>
+        <height>20</height>
+       </size>
+      </property>
+     </spacer>
     </item>
    </layout>
   </widget>
@@ -440,7 +688,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>658</width>
+     <width>675</width>
      <height>22</height>
     </rect>
    </property>

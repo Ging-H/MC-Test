@@ -1,5 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include <QStyleFactory>
+
+#define FACTOR_RAD_ROUND  6.282505f // 弧度 单位转换成转数单位
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -11,7 +14,8 @@ MainWindow::MainWindow(QWidget *parent) :
     this->initComboBox_Config();
     tim = new QTimer();
     connect(tim,SIGNAL(timeout()),this, SLOT(slots_timeoutGetSpeed()) );
-    tim->start(300);
+    tim->start(500);
+    QApplication::setStyle(QStyleFactory::create("Fusion"));//Qt自带皮肤风格 可选 Windows,WindowsXP,WindowsVista,Fusion
 }
 
 MainWindow::~MainWindow()
@@ -28,6 +32,25 @@ void MainWindow::initComboBox_Config()
     BaseSerialComm::listVerify  ( ui -> cbbVerify  );
     BaseSerialComm::listStopBit ( ui -> cbbStopBit );
     BaseSerialComm::listPortNum ( ui -> cbbPortNum );
+    this->listRegAddress(ui->cbbRegAddr);
+    ui->cbbRegAddr->setMaxVisibleItems(20); //设置显示的行数为20
+}
+/* 列出寄存器地址 */
+void MainWindow::listRegAddress(QComboBox *cbbREGAddress)
+{
+    QMetaEnum mtaEnum = QMetaEnum::fromType<MainWindow::MC_Protocol_REG_t>();
+    QString tmp;
+    for (int i = 0; i < mtaEnum.keyCount(); i++) {
+//        tmp = QString::number(mtaEnum.value(i));
+        cbbREGAddress->addItem(mtaEnum.key(i), mtaEnum.value(i));
+
+//        cbbREGAddress->addItem(tmp, mtaEnum.value(i));
+//        qDebug() << tmp;
+        /* 删除未知值 */
+//        if(mtaEnum.value(i)== BaseSerialComm::BaudRate::UnknownBaud ){
+//            cbbREGAddress->removeItem(i);
+//        }
+    }
 }
 
 /* 刷新按钮点击 槽函数 */
@@ -239,10 +262,9 @@ void MainWindow::on_btnRamp_clicked()
 
     QString tmp = "32 08 "; // 写寄存器 ，位置环Kd
     QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
-    quint32 posTarget = ui->spbPosTarget->value();
     quint32 posTime = ui->spbPosTime->value();
 
-    data.Float= (float)posTarget;
+    data.Float = (float)ui->spbPosTarget->value() * FACTOR_RAD_ROUND;// 转数*6.28 -> 弧度
     txBuf.append( (const char *)&data.U8, 4 );
 
     data.Float= (float)posTime;
@@ -252,9 +274,7 @@ void MainWindow::on_btnRamp_clicked()
     currentPort->write(txBuf, txBuf.size());
     currentPort->waitForBytesWritten();
     ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
-
 }
-
 
 /**
  * @brief MainWindow::slots_timeoutGetSpeed 超时读取速度值
@@ -262,20 +282,37 @@ void MainWindow::on_btnRamp_clicked()
 void MainWindow::slots_timeoutGetSpeed()
 {
     if(ui->btnOpenPort->isChecked()){
-        QString tmp = "22 01 1E 21";
+        /* 读取当前速度 */
+        QString tmp = "22 01 1E";
         QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+        this->appendCRC(txBuf);
         rxBuf.clear();
         currentPort->write(txBuf, txBuf.size());
-        if(currentPort->waitForBytesWritten(100)){
-            currentPort->waitForReadyRead(100);
+        if(currentPort->waitForBytesWritten(50)){
+            currentPort->waitForReadyRead(50);
             rxBuf.append(currentPort->readAll());
             if(checkCRC(rxBuf)){
                 qint32 spd = readSpd(rxBuf);
                 ui->spbSpeed->setValue(spd);
             }
             rxBuf.clear();
-        }else
-            qDebug()<< "read Speed Timeout";
+        }
+
+        /* 读取当前位置 */
+        tmp = "22 01 83";
+        txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+        this->appendCRC(txBuf);
+        rxBuf.clear();
+        currentPort->write(txBuf, txBuf.size());
+        if(currentPort->waitForBytesWritten(50)){
+            currentPort->waitForReadyRead(50);
+            rxBuf.append(currentPort->readAll());
+            if(checkCRC(rxBuf)){
+                float pos = readPos(rxBuf);
+                ui->txtCurrentPos->setText( tr("当前位置：%1 r").arg(pos/FACTOR_RAD_ROUND));
+            }
+            rxBuf.clear();
+        }
     }
 }
 
@@ -319,6 +356,26 @@ qint32 MainWindow::readSpd(QByteArray &buffer)
     qint32 spd = aa.tmpInt;
     return spd;
 }
+
+/**
+ * @brief MainWindow::readSpd 读取当前位置值
+ * @param buffer 接收数据缓存
+ * @return float 位置值
+ */
+float MainWindow::readPos(QByteArray &buffer)
+{
+    union tmp{
+        quint8 tmpChar[4];
+        float tmpFloat;
+    }aa;
+    if( buffer.size() != 7) return 0;
+    aa.tmpChar[0] = buffer.at(2);
+    aa.tmpChar[1] = buffer.at(3);
+    aa.tmpChar[2] = buffer.at(4);
+    aa.tmpChar[3] = buffer.at(5);
+    float pos = aa.tmpFloat;
+    return pos;
+}
 /**
  * @brief MainWindow::calcCRC  计算校验码
  * @param buffer 待校验数据
@@ -338,3 +395,88 @@ void MainWindow::appendCRC(QByteArray &buffer)
 }
 
 
+/**
+ * @brief MainWindow::on_btnOtherCMD_clicked 发送通用的指令
+ */
+
+void MainWindow::on_btnOtherCMD_clicked()
+{
+    quint8 motorNum = ui->cbbMotorNum->currentIndex();
+    quint8 frameID  = ui->cbbFrameID->currentIndex();
+    if(frameID == 0){
+        ui->statusBar->showMessage("请选择明确的FrameID");
+        return;
+    }
+    quint8 regAddress = ui->cbbRegAddr->currentIndex();
+    quint8 cmd = ui->cbbCMD->currentIndex();
+
+    /* 验证指令是否有效 */
+    if(frameID <= 2){
+        if(regAddress == 0) {
+            ui->statusBar->showMessage("请选择明确的寄存器");
+            return;
+        }
+    }else if(frameID == 3){
+        if(cmd == 0) {
+            ui->statusBar->showMessage("请选择明确的指令");
+            return;
+        }
+    }
+
+    tim->stop();
+
+    QString hex = ui->txtOtherCMD->text();
+    hex.remove(QRegExp("\\s"));
+
+    QByteArray txBuf = QByteArray::fromHex(hex.toLocal8Bit());
+
+    switch( frameID ){
+    /* 读写寄存器 */
+    case 0x01:
+    case 0x02:
+        txBuf.prepend( regAddress );
+        break;
+    /* 发送指令 */
+    case 0x03:
+        txBuf.prepend( cmd );
+        break;
+
+    default:break;
+    }
+    txBuf.prepend( txBuf.size() ); // payload length
+    txBuf.prepend( (motorNum<<5) | frameID );// start
+    this->appendCRC(txBuf); // crc
+
+    currentPort->write(txBuf, txBuf.size());
+    if(currentPort->waitForBytesWritten(100)){
+        currentPort->waitForReadyRead(100);
+
+        rxBuf.append(currentPort->readAll());
+        ui->txtOtherRx->setText( rxBuf.toHex(' ').toUpper() );
+        rxBuf.clear();
+    }
+    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
+    tim->start(300);
+}
+/**
+ * @brief MainWindow::on_cbbFrameID_currentIndexChanged  FrameID
+ * @param index  选择的项
+ */
+void MainWindow::on_cbbFrameID_currentIndexChanged(int index)
+{
+    switch(index){
+    case 0x01:
+    case 0x02:
+        ui->cbbRegAddr->setEnabled(true);
+        ui->cbbCMD->setEnabled(false);
+        break;
+    case 0x03:
+        ui->cbbCMD->setEnabled(true);
+        ui->cbbRegAddr->setEnabled(false);
+        break;
+    default:
+        ui->cbbRegAddr->setEnabled(false);
+        ui->cbbCMD->setEnabled(false);
+        break;
+    }
+}
