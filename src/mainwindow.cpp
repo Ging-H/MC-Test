@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include <QStyleFactory>
+#include <QDebug>
 
 #define FACTOR_RAD_ROUND  6.282505f // 弧度 单位转换成转数单位
 
@@ -12,10 +13,11 @@ MainWindow::MainWindow(QWidget *parent) :
     currentPort = new BaseSerialComm();
     connect(currentPort,SIGNAL(errorOccurred(QSerialPort::SerialPortError)),this,SLOT(slots_errorHandler( QSerialPort::SerialPortError)));
     this->initComboBox_Config();
-    tim = new QTimer();
-    connect(tim,SIGNAL(timeout()),this, SLOT(slots_timeoutGetSpeed()) );
-    tim->start(500);
+    txTim = new QTimer();
+    connect(txTim,SIGNAL(timeout()),this, SLOT(slots_timeoutTx()) );
     QApplication::setStyle(QStyleFactory::create("Fusion"));//Qt自带皮肤风格 可选 Windows,WindowsXP,WindowsVista,Fusion
+    this->limitLineEdit();
+
 }
 
 MainWindow::~MainWindow()
@@ -39,17 +41,8 @@ void MainWindow::initComboBox_Config()
 void MainWindow::listRegAddress(QComboBox *cbbREGAddress)
 {
     QMetaEnum mtaEnum = QMetaEnum::fromType<MainWindow::MC_Protocol_REG_t>();
-    QString tmp;
     for (int i = 0; i < mtaEnum.keyCount(); i++) {
-//        tmp = QString::number(mtaEnum.value(i));
         cbbREGAddress->addItem(mtaEnum.key(i), mtaEnum.value(i));
-
-//        cbbREGAddress->addItem(tmp, mtaEnum.value(i));
-//        qDebug() << tmp;
-        /* 删除未知值 */
-//        if(mtaEnum.value(i)== BaseSerialComm::BaudRate::UnknownBaud ){
-//            cbbREGAddress->removeItem(i);
-//        }
     }
 }
 
@@ -75,9 +68,9 @@ void MainWindow::on_btnOpenPort_clicked(bool checked)
             currentPort -> setRTSState(false);
             /* 配置端口的波特率等参数 */
             this->configPort();
-
             connect(currentPort ,SIGNAL(readyRead()),this,SLOT( slots_serialRxCallback()));// 有数据就直接接收显示
-            ui->btnOpenPort->setText(tr("关闭串口"));
+//            txTim->start(150);    // 启动定时器
+             ui->btnOpenPort->setText(tr("关闭串口"));
         }else{
             ui->btnOpenPort->setChecked(false);
         }
@@ -128,45 +121,54 @@ void MainWindow::slots_errorHandler(QSerialPort::SerialPortError error)
 }
 void MainWindow::slots_serialRxCallback()
 {
-    rxBuf.append(currentPort->readAll());
+//    rxBuf.append(currentPort->readAll());
+}
+/**
+* @brief MainWindow::limitLineEdit  限制只能输入十六进制字符
+*/
+void MainWindow::limitLineEdit()
+{
+    QRegExp regExp("[a-fA-F0-9 ]*");  // 匹配十六进制字符和空格
+    QRegExpValidator *reg = new QRegExpValidator (regExp,this);
+    ui->txtOtherCMD->setValidator(reg);      // 设定正则表达式
 }
 /**
  * @brief MainWindow::on_btnReset_clicked 控制板复位
  */
 void MainWindow::on_btnReset_clicked()
 {
+    if(!currentPort->isOpen()){
+        QMessageBox::information(NULL, tr("未打开串口"),  tr("请打开串口之后再来尝试"), 0, 0);
+        return;
+    }
+    ui->spbSpeed->setValue(0); // reset Speed value
     QString tmp = "23 01 04";
     QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
     this->appendCRC(txBuf);
     currentPort->write(txBuf, txBuf.size());
-    currentPort->waitForBytesWritten();
-//    tim->setInterval(3000);
-    ui->spbSpeed->setValue(0);
-    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
+
+    tmp = txBuf.toHex(' ').toUpper().prepend("\tTx: ");
+    tmp.prepend("目标控制板复位");
+    this->insertLog( tmp);
+    txBuf.clear();
 }
 /**
  * @brief MainWindow::on_btnStart_clicked 启动电机转动
  */
 void MainWindow::on_btnStart_clicked()
 {
-    QString tmp = "23 01 01";
-    QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
-    this->appendCRC(txBuf);
-    currentPort->write(txBuf,txBuf.size());
-    currentPort->waitForBytesWritten();
-    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
+    QString cmd = "23 01 01";
+    QString log = "启动电机转动";
+    this->sendCMD(cmd, log);
 }
 /**
  * @brief MainWindow::on_btnStop_clicked  停止电机转动
  */
 void MainWindow::on_btnStop_clicked()
 {
-    QString tmp = "23 01 02";
-    QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
-    this->appendCRC(txBuf);
-    currentPort->write(txBuf,txBuf.size());
-    currentPort->waitForBytesWritten();
-    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
+    QString cmd = "23 01 02";
+    QString log = "停止电机转动";
+    this->sendCMD(cmd, log);
 }
 
 /**
@@ -174,24 +176,18 @@ void MainWindow::on_btnStop_clicked()
  */
 void MainWindow::on_btnStartStop_clicked()
 {
-    QString tmp = "23 01 06";
-    QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
-    this->appendCRC(txBuf);
-    currentPort->write(txBuf,txBuf.size());
-    currentPort->waitForBytesWritten();
-    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
+    QString cmd = "23 01 06";
+    QString log = "启动/停止电机转动";
+    this->sendCMD(cmd, log);
 }
 /**
  * @brief MainWindow::on_btnAlignment_clicked 编码器模式校准对齐
  */
 void MainWindow::on_btnAlignment_clicked()
 {
-    QString tmp = "23 01 08";
-    QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
-    this->appendCRC(txBuf);
-    currentPort->write(txBuf,txBuf.size());
-    currentPort->waitForBytesWritten();
-    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
+    QString cmd = "23 01 08";
+    QString log = "编码器模式校准对齐";
+    this->sendCMD(cmd, log);
 }
 
 /**
@@ -199,36 +195,34 @@ void MainWindow::on_btnAlignment_clicked()
  */
 void MainWindow::on_btnPosKp_clicked()
 {
-    QString tmp = "21 03 86"; // 写寄存器 ，位置环Kp
-    QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+    // 写寄存器 ，位置环Kp
+    QString cmd = "21 03 86 ";
+    QString log = "设置位置环PID-Kp";
     quint16 positionPID = ui->spbPosKp->value();
 
-    txBuf.append( (quint8)(positionPID & 0x00FF) );
-    txBuf.append( (quint8)(positionPID >>8 ) );
-
-    this->appendCRC(txBuf);
-
-    currentPort->write(txBuf, txBuf.size());
-    currentPort->waitForBytesWritten();
-    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
+    QByteArray tmpByteArray ;
+    tmpByteArray.append((quint8)(positionPID & 0x00FF));
+    tmpByteArray.append((quint8)(positionPID >>8 ));
+    tmpByteArray.toHex(' ').toUpper();
+    cmd.append(tmpByteArray.toHex(' ').toUpper());
+    this->sendCMD(cmd, log);
 }
 /**
  * @brief MainWindow::on_btnPosKi_clicked  设置位置环Ki
  */
 void MainWindow::on_btnPosKi_clicked()
 {
-    QString tmp = "21 03 87"; // 写寄存器 ，位置环Ki
-    QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+    // 写寄存器 ，位置环Ki
+    QString cmd = "21 03 87 ";
+    QString log = "设置位置环PID-Ki";
     quint16 positionPID = ui->spbPosKi->value();
 
-    txBuf.append( (quint8)(positionPID & 0x00FF) );
-    txBuf.append( (quint8)(positionPID >>8 ) );
-
-    this->appendCRC(txBuf);
-
-    currentPort->write(txBuf, txBuf.size());
-    currentPort->waitForBytesWritten();
-    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
+    QByteArray tmpByteArray ;
+    tmpByteArray.append((quint8)(positionPID & 0x00FF));
+    tmpByteArray.append((quint8)(positionPID >>8 ));
+    tmpByteArray.toHex(' ').toUpper();
+    cmd.append(tmpByteArray.toHex(' ').toUpper());
+    this->sendCMD(cmd, log);
 }
 
 /**
@@ -236,18 +230,17 @@ void MainWindow::on_btnPosKi_clicked()
  */
 void MainWindow::on_btnPosKd_clicked()
 {
-    QString tmp = "21 03 88"; // 写寄存器 ，位置环Kd
-    QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+    // 写寄存器 ，位置环Kd
+    QString cmd = "21 03 88 ";
+    QString log = "设置位置环PID-Kd";
     quint16 positionPID = ui->spbPosKd->value();
 
-    txBuf.append( (quint8)(positionPID & 0x00FF) );
-    txBuf.append( (quint8)(positionPID >>8 ) );
-
-    this->appendCRC(txBuf);
-
-    currentPort->write(txBuf, txBuf.size());
-    currentPort->waitForBytesWritten();
-    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
+    QByteArray tmpByteArray ;
+    tmpByteArray.append((quint8)(positionPID & 0x00FF));
+    tmpByteArray.append((quint8)(positionPID >>8 ));
+    tmpByteArray.toHex(' ').toUpper();
+    cmd.append(tmpByteArray.toHex(' ').toUpper());
+    this->sendCMD(cmd, log);
 }
 
 /**
@@ -260,36 +253,45 @@ void MainWindow::on_btnRamp_clicked()
         float   Float;
     }data;
 
-    QString tmp = "32 08 "; // 写寄存器 ，位置环Kd
-    QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
-    quint32 posTime = ui->spbPosTime->value();
+    QString cmd = "32 08 "; // 写寄存器 ，位置环Kd
+    QByteArray txBuf ;
 
+    /* 目标转数  */
     data.Float = (float)ui->spbPosTarget->value() * FACTOR_RAD_ROUND;// 转数*6.28 -> 弧度
     txBuf.append( (const char *)&data.U8, 4 );
 
-    data.Float= (float)posTime;
+    /* 运动周期 单位是 s */
+    float posDuration = ui->spbPosDuration->value();
+    data.Float= (float)posDuration;
     txBuf.append( (const char *)&data.U8, 4 );
 
-    this->appendCRC(txBuf);
-    currentPort->write(txBuf, txBuf.size());
-    currentPort->waitForBytesWritten();
-    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
+    QString log = "位置控制";
+    if( posDuration < 0.01f){
+        log = "following";
+    }else{
+        log = "movement";
+    }
+    txBuf.toHex(' ').toUpper();
+    cmd.append(txBuf.toHex(' ').toUpper());
+    this->sendCMD(cmd, log);
+
 }
 
 /**
- * @brief MainWindow::slots_timeoutGetSpeed 超时读取速度值
+ * @brief MainWindow::slots_timeoutTx 超时读取速度值
  */
-void MainWindow::slots_timeoutGetSpeed()
+void MainWindow::slots_timeoutTx()
 {
     if(ui->btnOpenPort->isChecked()){
         /* 读取当前速度 */
         QString tmp = "22 01 1E";
         QByteArray txBuf = QByteArray::fromHex(tmp.toLocal8Bit());
+        QByteArray rxBuf;
         this->appendCRC(txBuf);
         rxBuf.clear();
         currentPort->write(txBuf, txBuf.size());
-        if(currentPort->waitForBytesWritten(50)){
-            currentPort->waitForReadyRead(50);
+        if(currentPort->waitForBytesWritten(5)){
+            currentPort->waitForReadyRead(5);
             rxBuf.append(currentPort->readAll());
             if(checkCRC(rxBuf)){
                 qint32 spd = readSpd(rxBuf);
@@ -304,18 +306,27 @@ void MainWindow::slots_timeoutGetSpeed()
         this->appendCRC(txBuf);
         rxBuf.clear();
         currentPort->write(txBuf, txBuf.size());
-        if(currentPort->waitForBytesWritten(50)){
-            currentPort->waitForReadyRead(50);
+        if(currentPort->waitForBytesWritten(5)){
+            currentPort->waitForReadyRead(5);
             rxBuf.append(currentPort->readAll());
             if(checkCRC(rxBuf)){
                 float pos = readPos(rxBuf);
-                ui->txtCurrentPos->setText( tr("当前位置：%1 r").arg(pos/FACTOR_RAD_ROUND));
+                ui->spbCurrentPos->setValue( pos );
             }
             rxBuf.clear();
         }
     }
 }
+void MainWindow::slots_timeoutRx()
+{
 
+}
+void MainWindow::delayMSec(int msec)
+{
+  QTime dieTime = QTime::currentTime().addMSecs(msec);
+  while( QTime::currentTime() < dieTime )
+    QCoreApplication::processEvents(QEventLoop::AllEvents, 5);
+}
 /**
  * @brief MainWindow::checkCRC 计算验证CRC码
  * @param buffer 接收缓存
@@ -323,19 +334,17 @@ void MainWindow::slots_timeoutGetSpeed()
  */
 bool MainWindow::checkCRC(QByteArray &buffer)
 {
-    if( buffer.size() != 7) return false ;
     qint32 size = buffer.size()-1;
     quint16 sum = 0;
-    qint32 i = 0;
     quint16 crc = 0x00FF & buffer.at(size);
-    while(size--){
-        sum += (quint8)buffer.at(i++);
+    foreach (quint8 cc, buffer){
+        sum += cc;
     }
+    sum -= crc;
     sum = ((sum & 0xFF00)>>8) + (sum & 0x00FF);
     if( crc == sum ){
         return true;
-    }
-    else return false;
+    }else return false;
 }
 /**
  * @brief MainWindow::readSpd 读取速度值
@@ -401,6 +410,7 @@ void MainWindow::appendCRC(QByteArray &buffer)
 
 void MainWindow::on_btnOtherCMD_clicked()
 {
+
     quint8 motorNum = ui->cbbMotorNum->currentIndex();
     quint8 frameID  = ui->cbbFrameID->currentIndex();
     if(frameID == 0){
@@ -423,8 +433,7 @@ void MainWindow::on_btnOtherCMD_clicked()
         }
     }
 
-    tim->stop();
-
+    QByteArray rxBuf;
     QString hex = ui->txtOtherCMD->text();
     hex.remove(QRegExp("\\s"));
 
@@ -438,6 +447,7 @@ void MainWindow::on_btnOtherCMD_clicked()
         break;
     /* 发送指令 */
     case 0x03:
+        txBuf.clear();
         txBuf.prepend( cmd );
         break;
 
@@ -455,8 +465,7 @@ void MainWindow::on_btnOtherCMD_clicked()
         ui->txtOtherRx->setText( rxBuf.toHex(' ').toUpper() );
         rxBuf.clear();
     }
-    ui->statusBar->showMessage(txBuf.toHex(' ').toUpper());
-    tim->start(300);
+    ui->statusBar->showMessage(" Tx: "+txBuf.toHex(' ').toUpper(),3000);
 }
 /**
  * @brief MainWindow::on_cbbFrameID_currentIndexChanged  FrameID
@@ -479,4 +488,47 @@ void MainWindow::on_cbbFrameID_currentIndexChanged(int index)
         ui->cbbCMD->setEnabled(false);
         break;
     }
+}
+
+void MainWindow::sendCMD(QString &cmd, QString log)
+{
+    QString tmp;
+    if(!currentPort->isOpen()){
+        QMessageBox::information(NULL, tr("未打开串口"),  tr("请打开串口之后再来尝试"), 0, 0);
+        return;
+    }
+    QByteArray txBuf = QByteArray::fromHex(cmd.toLocal8Bit());
+    this->appendCRC(txBuf);
+    currentPort->write(txBuf, txBuf.size());
+    this->delayMSec(20); // delay 20ms
+    QByteArray rxBuf;
+    rxBuf = currentPort->readAll(); // read all bytes form contorl board;
+
+    if( checkCRC(rxBuf) == false ){
+        log = "从机无响应或校验码错误";
+    }
+    if(log.size()>=7){
+        tmp = "\tTx: ";
+    }else {
+        tmp = "\t\tTx: ";
+    }
+    log += txBuf.toHex(' ').toUpper().prepend( tmp.toLocal8Bit() );
+    log += rxBuf.toHex(' ').toUpper().prepend("\tRx: ");
+    this->insertLog( log );
+    rxBuf.clear();
+}
+void MainWindow::motorProtocolTx(QByteArray &buffer)
+{
+//    buffer = "123456";
+//    QList<QByteArray> dateList;
+//    dateList<<buffer;
+//    buffer = "0987";
+//    dateList<<buffer;
+//    qDebug()<<dateList;
+}
+void MainWindow::insertLog(QString &msg)
+{
+    QTime current_time = QTime::currentTime();
+    ui->lstLog->addItem(current_time.toString("[hh:mm:ss] -> ") + msg);
+    ui->lstLog->setCurrentRow(ui->lstLog->count() - 1);
 }

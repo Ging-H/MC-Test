@@ -8,6 +8,7 @@
 #include "QTimer"
 #include "QShortcut"
 #include "QMetaEnum"
+#include "QTime"
 
 namespace Ui {
 class MainWindow;
@@ -22,7 +23,7 @@ public:
     ~MainWindow();
 
 
-    typedef enum
+    enum MC_Protocol_REG_t
     {
         REG_TARGET_MOTOR,          /* 0   */
         REG_FLAGS,                 /* 1   */
@@ -162,11 +163,11 @@ public:
         REG_POSITION_KI,           /* 135 */
         REG_POSITION_KD,           /* 136 */
         REG_UNDEFINED
-    } MC_Protocol_REG_t;
+    };
+
     Q_ENUM(MC_Protocol_REG_t);
 
 
-    QByteArray rxBuf;
     void initComboBox_Config();
     void configPort();
     bool  checkCRC(QByteArray &buffer);
@@ -174,13 +175,18 @@ public:
     void appendCRC(QByteArray &buffer);
     void listRegAddress(QComboBox *cbbREGAddress);
     float readPos(QByteArray &buffer);
-
+    void motorProtocolTx(QByteArray &buffer);
+    void delayMSec(int msec);
+    void insertLog(QString &msg);
+    void sendCMD(QString &cmd, QString log);
+    void limitLineEdit();
 
 
 public slots:
     void slots_errorHandler(QSerialPort::SerialPortError error);
     void slots_serialRxCallback();
-    void slots_timeoutGetSpeed();
+    void slots_timeoutTx();
+    void slots_timeoutRx();
 
 private slots:
     void on_btnRefresh_clicked();
@@ -212,9 +218,8 @@ private slots:
 private:
     Ui::MainWindow *ui;
     BaseSerialComm *currentPort;   // 端口号
-    QTimer *tim;
-
-
+    QTimer *txTim;
+    QTimer *rxTim;
 };
 
 #endif // MAINWINDOW_H

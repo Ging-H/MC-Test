@@ -21,6 +21,7 @@
 #include <QtWidgets/QHeaderView>
 #include <QtWidgets/QLabel>
 #include <QtWidgets/QLineEdit>
+#include <QtWidgets/QListWidget>
 #include <QtWidgets/QMainWindow>
 #include <QtWidgets/QMenuBar>
 #include <QtWidgets/QPushButton>
@@ -38,6 +39,29 @@ class Ui_MainWindow
 public:
     QWidget *centralWidget;
     QGridLayout *gridLayout_2;
+    QGroupBox *groupBox_2;
+    QVBoxLayout *verticalLayout;
+    QPushButton *btnReset;
+    QPushButton *btnStart;
+    QPushButton *btnStop;
+    QPushButton *btnStartStop;
+    QPushButton *btnAlignment;
+    QSpinBox *spbSpeed;
+    QGroupBox *groupBox;
+    QGridLayout *gridLayout_4;
+    QPushButton *btnPosKi;
+    QPushButton *btnPosKp;
+    QSpinBox *spbPosKp;
+    QSpinBox *spbPosKi;
+    QPushButton *btnPosKd;
+    QPushButton *btnRamp;
+    QSpinBox *spbPosKd;
+    QGridLayout *gridLayout;
+    QLabel *label;
+    QLabel *label_2;
+    QDoubleSpinBox *spbPosTarget;
+    QDoubleSpinBox *spbPosDuration;
+    QDoubleSpinBox *spbCurrentPos;
     QGroupBox *QGBSerialConfig;
     QPushButton *btnOpenPort;
     QWidget *formLayoutWidget;
@@ -63,31 +87,8 @@ public:
     QVBoxLayout *verticalLayout_3;
     QLineEdit *txtOtherCMD;
     QLineEdit *txtOtherRx;
-    QGroupBox *groupBox_2;
-    QVBoxLayout *verticalLayout;
-    QPushButton *btnReset;
-    QPushButton *btnStart;
-    QPushButton *btnStop;
-    QPushButton *btnStartStop;
-    QPushButton *btnAlignment;
-    QSpinBox *spbSpeed;
-    QGroupBox *groupBox;
-    QGridLayout *gridLayout_4;
-    QPushButton *btnPosKi;
-    QSpinBox *spbPosKp;
-    QPushButton *btnPosKp;
-    QSpinBox *spbPosKi;
-    QPushButton *btnPosKd;
-    QPushButton *btnRamp;
-    QSpinBox *spbPosKd;
-    QGridLayout *gridLayout;
-    QLabel *label;
-    QLabel *label_2;
-    QSpinBox *spbPosTime;
-    QDoubleSpinBox *spbPosTarget;
-    QLineEdit *txtCurrentPos;
-    QSpacerItem *verticalSpacer;
     QSpacerItem *horizontalSpacer;
+    QListWidget *lstLog;
     QMenuBar *menuBar;
     QToolBar *mainToolBar;
     QStatusBar *statusBar;
@@ -96,13 +97,145 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
-        MainWindow->resize(675, 355);
+        MainWindow->resize(711, 425);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout_2 = new QGridLayout(centralWidget);
         gridLayout_2->setSpacing(6);
         gridLayout_2->setContentsMargins(11, 11, 11, 11);
         gridLayout_2->setObjectName(QStringLiteral("gridLayout_2"));
+        groupBox_2 = new QGroupBox(centralWidget);
+        groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
+        verticalLayout = new QVBoxLayout(groupBox_2);
+        verticalLayout->setSpacing(6);
+        verticalLayout->setContentsMargins(11, 11, 11, 11);
+        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
+        btnReset = new QPushButton(groupBox_2);
+        btnReset->setObjectName(QStringLiteral("btnReset"));
+
+        verticalLayout->addWidget(btnReset);
+
+        btnStart = new QPushButton(groupBox_2);
+        btnStart->setObjectName(QStringLiteral("btnStart"));
+
+        verticalLayout->addWidget(btnStart);
+
+        btnStop = new QPushButton(groupBox_2);
+        btnStop->setObjectName(QStringLiteral("btnStop"));
+
+        verticalLayout->addWidget(btnStop);
+
+        btnStartStop = new QPushButton(groupBox_2);
+        btnStartStop->setObjectName(QStringLiteral("btnStartStop"));
+
+        verticalLayout->addWidget(btnStartStop);
+
+        btnAlignment = new QPushButton(groupBox_2);
+        btnAlignment->setObjectName(QStringLiteral("btnAlignment"));
+
+        verticalLayout->addWidget(btnAlignment);
+
+        spbSpeed = new QSpinBox(groupBox_2);
+        spbSpeed->setObjectName(QStringLiteral("spbSpeed"));
+        spbSpeed->setEnabled(true);
+        spbSpeed->setFocusPolicy(Qt::NoFocus);
+        spbSpeed->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        spbSpeed->setMinimum(-999999999);
+        spbSpeed->setMaximum(999999999);
+
+        verticalLayout->addWidget(spbSpeed);
+
+
+        gridLayout_2->addWidget(groupBox_2, 1, 3, 1, 1);
+
+        groupBox = new QGroupBox(centralWidget);
+        groupBox->setObjectName(QStringLiteral("groupBox"));
+        gridLayout_4 = new QGridLayout(groupBox);
+        gridLayout_4->setSpacing(6);
+        gridLayout_4->setContentsMargins(11, 11, 11, 11);
+        gridLayout_4->setObjectName(QStringLiteral("gridLayout_4"));
+        btnPosKi = new QPushButton(groupBox);
+        btnPosKi->setObjectName(QStringLiteral("btnPosKi"));
+
+        gridLayout_4->addWidget(btnPosKi, 1, 0, 1, 1);
+
+        btnPosKp = new QPushButton(groupBox);
+        btnPosKp->setObjectName(QStringLiteral("btnPosKp"));
+
+        gridLayout_4->addWidget(btnPosKp, 0, 0, 1, 1);
+
+        spbPosKp = new QSpinBox(groupBox);
+        spbPosKp->setObjectName(QStringLiteral("spbPosKp"));
+        spbPosKp->setMinimum(-65536);
+        spbPosKp->setMaximum(65535);
+
+        gridLayout_4->addWidget(spbPosKp, 0, 1, 1, 1);
+
+        spbPosKi = new QSpinBox(groupBox);
+        spbPosKi->setObjectName(QStringLiteral("spbPosKi"));
+        spbPosKi->setMinimum(-65536);
+        spbPosKi->setMaximum(65536);
+
+        gridLayout_4->addWidget(spbPosKi, 1, 1, 1, 1);
+
+        btnPosKd = new QPushButton(groupBox);
+        btnPosKd->setObjectName(QStringLiteral("btnPosKd"));
+
+        gridLayout_4->addWidget(btnPosKd, 2, 0, 1, 1);
+
+        btnRamp = new QPushButton(groupBox);
+        btnRamp->setObjectName(QStringLiteral("btnRamp"));
+
+        gridLayout_4->addWidget(btnRamp, 3, 0, 1, 1);
+
+        spbPosKd = new QSpinBox(groupBox);
+        spbPosKd->setObjectName(QStringLiteral("spbPosKd"));
+        spbPosKd->setMinimum(-65536);
+        spbPosKd->setMaximum(65536);
+
+        gridLayout_4->addWidget(spbPosKd, 2, 1, 1, 1);
+
+        gridLayout = new QGridLayout();
+        gridLayout->setSpacing(6);
+        gridLayout->setObjectName(QStringLiteral("gridLayout"));
+        label = new QLabel(groupBox);
+        label->setObjectName(QStringLiteral("label"));
+
+        gridLayout->addWidget(label, 0, 0, 1, 1);
+
+        label_2 = new QLabel(groupBox);
+        label_2->setObjectName(QStringLiteral("label_2"));
+
+        gridLayout->addWidget(label_2, 2, 0, 1, 1);
+
+        spbPosTarget = new QDoubleSpinBox(groupBox);
+        spbPosTarget->setObjectName(QStringLiteral("spbPosTarget"));
+        spbPosTarget->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        spbPosTarget->setMaximum(1e+8);
+
+        gridLayout->addWidget(spbPosTarget, 0, 1, 1, 1);
+
+        spbPosDuration = new QDoubleSpinBox(groupBox);
+        spbPosDuration->setObjectName(QStringLiteral("spbPosDuration"));
+        spbPosDuration->setMaximum(1e+21);
+
+        gridLayout->addWidget(spbPosDuration, 2, 1, 1, 1);
+
+
+        gridLayout_4->addLayout(gridLayout, 3, 1, 1, 1);
+
+        spbCurrentPos = new QDoubleSpinBox(groupBox);
+        spbCurrentPos->setObjectName(QStringLiteral("spbCurrentPos"));
+        spbCurrentPos->setFocusPolicy(Qt::NoFocus);
+        spbCurrentPos->setButtonSymbols(QAbstractSpinBox::NoButtons);
+        spbCurrentPos->setDecimals(3);
+        spbCurrentPos->setMaximum(1e+19);
+
+        gridLayout_4->addWidget(spbCurrentPos, 4, 0, 1, 2);
+
+
+        gridLayout_2->addWidget(groupBox, 1, 4, 1, 1);
+
         QGBSerialConfig = new QGroupBox(centralWidget);
         QGBSerialConfig->setObjectName(QStringLiteral("QGBSerialConfig"));
         QGBSerialConfig->setEnabled(true);
@@ -274,146 +407,19 @@ public:
 
         gridLayout_2->addLayout(horizontalLayout, 3, 2, 1, 3);
 
-        groupBox_2 = new QGroupBox(centralWidget);
-        groupBox_2->setObjectName(QStringLiteral("groupBox_2"));
-        verticalLayout = new QVBoxLayout(groupBox_2);
-        verticalLayout->setSpacing(6);
-        verticalLayout->setContentsMargins(11, 11, 11, 11);
-        verticalLayout->setObjectName(QStringLiteral("verticalLayout"));
-        btnReset = new QPushButton(groupBox_2);
-        btnReset->setObjectName(QStringLiteral("btnReset"));
-
-        verticalLayout->addWidget(btnReset);
-
-        btnStart = new QPushButton(groupBox_2);
-        btnStart->setObjectName(QStringLiteral("btnStart"));
-
-        verticalLayout->addWidget(btnStart);
-
-        btnStop = new QPushButton(groupBox_2);
-        btnStop->setObjectName(QStringLiteral("btnStop"));
-
-        verticalLayout->addWidget(btnStop);
-
-        btnStartStop = new QPushButton(groupBox_2);
-        btnStartStop->setObjectName(QStringLiteral("btnStartStop"));
-
-        verticalLayout->addWidget(btnStartStop);
-
-        btnAlignment = new QPushButton(groupBox_2);
-        btnAlignment->setObjectName(QStringLiteral("btnAlignment"));
-
-        verticalLayout->addWidget(btnAlignment);
-
-        spbSpeed = new QSpinBox(groupBox_2);
-        spbSpeed->setObjectName(QStringLiteral("spbSpeed"));
-        spbSpeed->setEnabled(true);
-        spbSpeed->setButtonSymbols(QAbstractSpinBox::NoButtons);
-        spbSpeed->setMinimum(-999999999);
-        spbSpeed->setMaximum(999999999);
-
-        verticalLayout->addWidget(spbSpeed);
-
-
-        gridLayout_2->addWidget(groupBox_2, 1, 3, 1, 1);
-
-        groupBox = new QGroupBox(centralWidget);
-        groupBox->setObjectName(QStringLiteral("groupBox"));
-        gridLayout_4 = new QGridLayout(groupBox);
-        gridLayout_4->setSpacing(6);
-        gridLayout_4->setContentsMargins(11, 11, 11, 11);
-        gridLayout_4->setObjectName(QStringLiteral("gridLayout_4"));
-        btnPosKi = new QPushButton(groupBox);
-        btnPosKi->setObjectName(QStringLiteral("btnPosKi"));
-
-        gridLayout_4->addWidget(btnPosKi, 1, 0, 1, 1);
-
-        spbPosKp = new QSpinBox(groupBox);
-        spbPosKp->setObjectName(QStringLiteral("spbPosKp"));
-        spbPosKp->setMinimum(-65536);
-        spbPosKp->setMaximum(65535);
-
-        gridLayout_4->addWidget(spbPosKp, 0, 1, 1, 1);
-
-        btnPosKp = new QPushButton(groupBox);
-        btnPosKp->setObjectName(QStringLiteral("btnPosKp"));
-
-        gridLayout_4->addWidget(btnPosKp, 0, 0, 1, 1);
-
-        spbPosKi = new QSpinBox(groupBox);
-        spbPosKi->setObjectName(QStringLiteral("spbPosKi"));
-        spbPosKi->setMinimum(-65536);
-        spbPosKi->setMaximum(65536);
-
-        gridLayout_4->addWidget(spbPosKi, 1, 1, 1, 1);
-
-        btnPosKd = new QPushButton(groupBox);
-        btnPosKd->setObjectName(QStringLiteral("btnPosKd"));
-
-        gridLayout_4->addWidget(btnPosKd, 2, 0, 1, 1);
-
-        btnRamp = new QPushButton(groupBox);
-        btnRamp->setObjectName(QStringLiteral("btnRamp"));
-
-        gridLayout_4->addWidget(btnRamp, 3, 0, 1, 1);
-
-        spbPosKd = new QSpinBox(groupBox);
-        spbPosKd->setObjectName(QStringLiteral("spbPosKd"));
-        spbPosKd->setMinimum(-65536);
-        spbPosKd->setMaximum(65536);
-
-        gridLayout_4->addWidget(spbPosKd, 2, 1, 1, 1);
-
-        gridLayout = new QGridLayout();
-        gridLayout->setSpacing(6);
-        gridLayout->setObjectName(QStringLiteral("gridLayout"));
-        label = new QLabel(groupBox);
-        label->setObjectName(QStringLiteral("label"));
-
-        gridLayout->addWidget(label, 0, 0, 1, 1);
-
-        label_2 = new QLabel(groupBox);
-        label_2->setObjectName(QStringLiteral("label_2"));
-
-        gridLayout->addWidget(label_2, 2, 0, 1, 1);
-
-        spbPosTime = new QSpinBox(groupBox);
-        spbPosTime->setObjectName(QStringLiteral("spbPosTime"));
-        spbPosTime->setButtonSymbols(QAbstractSpinBox::NoButtons);
-        spbPosTime->setMaximum(999999999);
-
-        gridLayout->addWidget(spbPosTime, 2, 1, 1, 1);
-
-        spbPosTarget = new QDoubleSpinBox(groupBox);
-        spbPosTarget->setObjectName(QStringLiteral("spbPosTarget"));
-        spbPosTarget->setButtonSymbols(QAbstractSpinBox::NoButtons);
-        spbPosTarget->setMaximum(1e+8);
-
-        gridLayout->addWidget(spbPosTarget, 0, 1, 1, 1);
-
-
-        gridLayout_4->addLayout(gridLayout, 3, 1, 1, 1);
-
-        txtCurrentPos = new QLineEdit(groupBox);
-        txtCurrentPos->setObjectName(QStringLiteral("txtCurrentPos"));
-
-        gridLayout_4->addWidget(txtCurrentPos, 4, 0, 1, 2);
-
-
-        gridLayout_2->addWidget(groupBox, 1, 4, 1, 1);
-
-        verticalSpacer = new QSpacerItem(20, 40, QSizePolicy::Minimum, QSizePolicy::Expanding);
-
-        gridLayout_2->addItem(verticalSpacer, 2, 2, 1, 1);
-
         horizontalSpacer = new QSpacerItem(40, 20, QSizePolicy::Expanding, QSizePolicy::Minimum);
 
         gridLayout_2->addItem(horizontalSpacer, 1, 5, 1, 1);
 
+        lstLog = new QListWidget(centralWidget);
+        lstLog->setObjectName(QStringLiteral("lstLog"));
+
+        gridLayout_2->addWidget(lstLog, 5, 2, 1, 3);
+
         MainWindow->setCentralWidget(centralWidget);
         menuBar = new QMenuBar(MainWindow);
         menuBar->setObjectName(QStringLiteral("menuBar"));
-        menuBar->setGeometry(QRect(0, 0, 675, 22));
+        menuBar->setGeometry(QRect(0, 0, 711, 22));
         MainWindow->setMenuBar(menuBar);
         mainToolBar = new QToolBar(MainWindow);
         mainToolBar->setObjectName(QStringLiteral("mainToolBar"));
@@ -433,6 +439,38 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", Q_NULLPTR));
+        groupBox_2->setTitle(QApplication::translate("MainWindow", "\345\237\272\347\241\200\346\216\247\345\210\266", Q_NULLPTR));
+        btnReset->setText(QApplication::translate("MainWindow", "\345\244\215\344\275\215(Ctrl+ R)", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        btnReset->setShortcut(QApplication::translate("MainWindow", "Ctrl+R", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
+        btnStart->setText(QApplication::translate("MainWindow", "\345\220\257\345\212\250(Ctrl+ S)", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        btnStart->setShortcut(QApplication::translate("MainWindow", "Ctrl+S", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
+        btnStop->setText(QApplication::translate("MainWindow", "\345\201\234\346\255\242(Esc)", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        btnStop->setShortcut(QApplication::translate("MainWindow", "Esc", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
+        btnStartStop->setText(QApplication::translate("MainWindow", "\345\220\257\345\212\250/\345\201\234\346\255\242(Enter)", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        btnStartStop->setShortcut(QApplication::translate("MainWindow", "Return", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
+        btnAlignment->setText(QApplication::translate("MainWindow", "\346\240\241\345\207\206\345\257\271\351\275\220(Ctrl+ A)", Q_NULLPTR));
+#ifndef QT_NO_SHORTCUT
+        btnAlignment->setShortcut(QApplication::translate("MainWindow", "Ctrl+A", Q_NULLPTR));
+#endif // QT_NO_SHORTCUT
+        spbSpeed->setSuffix(QApplication::translate("MainWindow", " RPM", Q_NULLPTR));
+        spbSpeed->setPrefix(QApplication::translate("MainWindow", "\347\224\265\346\234\272\350\275\254\351\200\237\357\274\232 ", Q_NULLPTR));
+        groupBox->setTitle(QApplication::translate("MainWindow", "\344\275\215\347\275\256\346\216\247\345\210\266", Q_NULLPTR));
+        btnPosKi->setText(QApplication::translate("MainWindow", "Ki", Q_NULLPTR));
+        btnPosKp->setText(QApplication::translate("MainWindow", "Kp", Q_NULLPTR));
+        btnPosKd->setText(QApplication::translate("MainWindow", "Kd", Q_NULLPTR));
+        btnRamp->setText(QApplication::translate("MainWindow", "Ramp", Q_NULLPTR));
+        label->setText(QApplication::translate("MainWindow", "\347\233\256\346\240\207\345\200\274", Q_NULLPTR));
+        label_2->setText(QApplication::translate("MainWindow", "\345\221\250\346\234\237", Q_NULLPTR));
+        spbCurrentPos->setPrefix(QApplication::translate("MainWindow", "\345\275\223\345\211\215\344\275\215\347\275\256 ", Q_NULLPTR));
+        spbCurrentPos->setSuffix(QApplication::translate("MainWindow", " r", Q_NULLPTR));
         QGBSerialConfig->setTitle(QApplication::translate("MainWindow", "\344\270\262\345\217\243\350\256\276\347\275\256", Q_NULLPTR));
         btnOpenPort->setText(QApplication::translate("MainWindow", "\346\211\223\345\274\200\344\270\262\345\217\243", Q_NULLPTR));
         lblVerify->setText(QApplication::translate("MainWindow", "\346\240\241\351\252\214", Q_NULLPTR));
@@ -487,36 +525,6 @@ public:
          << QApplication::translate("MainWindow", "SC_START", Q_NULLPTR)
          << QApplication::translate("MainWindow", "SC_STOP", Q_NULLPTR)
         );
-        groupBox_2->setTitle(QApplication::translate("MainWindow", "\345\237\272\347\241\200\346\216\247\345\210\266", Q_NULLPTR));
-        btnReset->setText(QApplication::translate("MainWindow", "\345\244\215\344\275\215(Ctrl+ R)", Q_NULLPTR));
-#ifndef QT_NO_SHORTCUT
-        btnReset->setShortcut(QApplication::translate("MainWindow", "Ctrl+R", Q_NULLPTR));
-#endif // QT_NO_SHORTCUT
-        btnStart->setText(QApplication::translate("MainWindow", "\345\220\257\345\212\250(Ctrl+ S)", Q_NULLPTR));
-#ifndef QT_NO_SHORTCUT
-        btnStart->setShortcut(QApplication::translate("MainWindow", "Ctrl+S", Q_NULLPTR));
-#endif // QT_NO_SHORTCUT
-        btnStop->setText(QApplication::translate("MainWindow", "\345\201\234\346\255\242(Esc)", Q_NULLPTR));
-#ifndef QT_NO_SHORTCUT
-        btnStop->setShortcut(QApplication::translate("MainWindow", "Esc", Q_NULLPTR));
-#endif // QT_NO_SHORTCUT
-        btnStartStop->setText(QApplication::translate("MainWindow", "\345\220\257\345\212\250/\345\201\234\346\255\242(Enter)", Q_NULLPTR));
-#ifndef QT_NO_SHORTCUT
-        btnStartStop->setShortcut(QApplication::translate("MainWindow", "Return", Q_NULLPTR));
-#endif // QT_NO_SHORTCUT
-        btnAlignment->setText(QApplication::translate("MainWindow", "\346\240\241\345\207\206\345\257\271\351\275\220(Ctrl+ A)", Q_NULLPTR));
-#ifndef QT_NO_SHORTCUT
-        btnAlignment->setShortcut(QApplication::translate("MainWindow", "Ctrl+A", Q_NULLPTR));
-#endif // QT_NO_SHORTCUT
-        spbSpeed->setSuffix(QApplication::translate("MainWindow", " RPM", Q_NULLPTR));
-        spbSpeed->setPrefix(QApplication::translate("MainWindow", "\347\224\265\346\234\272\350\275\254\351\200\237\357\274\232 ", Q_NULLPTR));
-        groupBox->setTitle(QApplication::translate("MainWindow", "\344\275\215\347\275\256\346\216\247\345\210\266", Q_NULLPTR));
-        btnPosKi->setText(QApplication::translate("MainWindow", "Ki", Q_NULLPTR));
-        btnPosKp->setText(QApplication::translate("MainWindow", "Kd", Q_NULLPTR));
-        btnPosKd->setText(QApplication::translate("MainWindow", "Kd", Q_NULLPTR));
-        btnRamp->setText(QApplication::translate("MainWindow", "Ramp", Q_NULLPTR));
-        label->setText(QApplication::translate("MainWindow", "\347\233\256\346\240\207\345\200\274", Q_NULLPTR));
-        label_2->setText(QApplication::translate("MainWindow", "\345\221\250\346\234\237", Q_NULLPTR));
     } // retranslateUi
 
 };
