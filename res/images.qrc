@@ -1,0 +1,8 @@
+<RCC>
+    <qresource prefix="/prefix">
+        <file>about.png</file>
+        <file>com_3.png</file>
+        <file>com_4.png</file>
+        <file>view-refresh.png</file>
+    </qresource>
+</RCC>

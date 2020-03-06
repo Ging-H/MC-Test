@@ -10,6 +10,7 @@
 #include "QMetaEnum"
 #include "QTime"
 
+
 namespace Ui {
 class MainWindow;
 }
@@ -168,30 +169,50 @@ public:
     Q_ENUM(MC_Protocol_REG_t);
 
 
+    enum SendOrder{
+        order0,  // 读取速度
+        order1,  // 读取位置
+        order2,
+        order3,
+        order4,
+        order5,
+        order6,
+        order7,
+        order8,
+        order9,
+        order10,
+        order11,
+    };
+    Q_ENUM(SendOrder);
+
+    QList<SendOrder> listOrder;
+
     void initComboBox_Config();
     void configPort();
-    bool  checkCRC(QByteArray &buffer);
-    qint32 readSpd(QByteArray &buffer);
-    void appendCRC(QByteArray &buffer);
+    void limitLineEdit();
     void listRegAddress(QComboBox *cbbREGAddress);
+
+    bool  checkCRC(QByteArray &buffer);
+    void appendCRC(QByteArray &buffer);
+
+    qint32 readSpd(QByteArray &buffer);
     float readPos(QByteArray &buffer);
-    void motorProtocolTx(QByteArray &buffer);
+
     void delayMSec(int msec);
     void insertLog(QString &msg);
-    void sendCMD(QString &cmd, QString log);
-    void limitLineEdit();
+    QByteArray sendCMD(QString cmd, QString log, bool isLog = true);
+
+
 
 
 public slots:
     void slots_errorHandler(QSerialPort::SerialPortError error);
-    void slots_serialRxCallback();
+//    void slots_serialRxCallback();
     void slots_timeoutTx();
-    void slots_timeoutRx();
 
 private slots:
     void on_btnRefresh_clicked();
     void on_btnOpenPort_clicked(bool checked);
-
 
     void on_btnStartStop_clicked();
 
@@ -215,11 +236,12 @@ private slots:
 
     void on_cbbFrameID_currentIndexChanged(int index);
 
+    void on_actionAbout_triggered();
+
 private:
     Ui::MainWindow *ui;
     BaseSerialComm *currentPort;   // 端口号
     QTimer *txTim;
-    QTimer *rxTim;
 };
 
 #endif // MAINWINDOW_H

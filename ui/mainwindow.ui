@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>711</width>
-    <height>425</height>
+    <height>448</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -277,14 +277,14 @@
         <string>打开串口</string>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>:/action/action/centrejust.png</normaloff>
-         <normalon>:/action/action/process-stop.png</normalon>:/action/action/centrejust.png</iconset>
+        <iconset resource="../res/images.qrc">
+         <normaloff>:/prefix/com_3.png</normaloff>
+         <normalon>:/prefix/com_4.png</normalon>:/prefix/com_3.png</iconset>
        </property>
        <property name="iconSize">
         <size>
-         <width>18</width>
-         <height>18</height>
+         <width>25</width>
+         <height>25</height>
         </size>
        </property>
        <property name="checkable">
@@ -441,8 +441,8 @@
         <string>刷新</string>
        </property>
        <property name="icon">
-        <iconset>
-         <normaloff>:/action/action/reload.png</normaloff>:/action/action/reload.png</iconset>
+        <iconset resource="../res/images.qrc">
+         <normaloff>:/prefix/view-refresh.png</normaloff>:/prefix/view-refresh.png</iconset>
        </property>
        <property name="iconSize">
         <size>
@@ -709,10 +709,22 @@
    <attribute name="toolBarBreak">
     <bool>false</bool>
    </attribute>
+   <addaction name="actionAbout"/>
   </widget>
   <widget class="QStatusBar" name="statusBar"/>
+  <action name="actionAbout">
+   <property name="icon">
+    <iconset resource="../res/images.qrc">
+     <normaloff>:/prefix/about.png</normaloff>:/prefix/about.png</iconset>
+   </property>
+   <property name="text">
+    <string>关于</string>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="../res/images.qrc"/>
+ </resources>
  <connections/>
 </ui>

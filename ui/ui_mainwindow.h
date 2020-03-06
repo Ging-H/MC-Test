@@ -37,6 +37,7 @@ QT_BEGIN_NAMESPACE
 class Ui_MainWindow
 {
 public:
+    QAction *actionAbout;
     QWidget *centralWidget;
     QGridLayout *gridLayout_2;
     QGroupBox *groupBox_2;
@@ -97,7 +98,12 @@ public:
     {
         if (MainWindow->objectName().isEmpty())
             MainWindow->setObjectName(QStringLiteral("MainWindow"));
-        MainWindow->resize(711, 425);
+        MainWindow->resize(711, 448);
+        actionAbout = new QAction(MainWindow);
+        actionAbout->setObjectName(QStringLiteral("actionAbout"));
+        QIcon icon;
+        icon.addFile(QStringLiteral(":/prefix/about.png"), QSize(), QIcon::Normal, QIcon::Off);
+        actionAbout->setIcon(icon);
         centralWidget = new QWidget(MainWindow);
         centralWidget->setObjectName(QStringLiteral("centralWidget"));
         gridLayout_2 = new QGridLayout(centralWidget);
@@ -254,11 +260,11 @@ public:
         btnOpenPort->setEnabled(true);
         btnOpenPort->setGeometry(QRect(69, 160, 91, 31));
         btnOpenPort->setStyleSheet(QStringLiteral(""));
-        QIcon icon;
-        icon.addFile(QStringLiteral(":/action/action/centrejust.png"), QSize(), QIcon::Normal, QIcon::Off);
-        icon.addFile(QStringLiteral(":/action/action/process-stop.png"), QSize(), QIcon::Normal, QIcon::On);
-        btnOpenPort->setIcon(icon);
-        btnOpenPort->setIconSize(QSize(18, 18));
+        QIcon icon1;
+        icon1.addFile(QStringLiteral(":/prefix/com_3.png"), QSize(), QIcon::Normal, QIcon::Off);
+        icon1.addFile(QStringLiteral(":/prefix/com_4.png"), QSize(), QIcon::Normal, QIcon::On);
+        btnOpenPort->setIcon(icon1);
+        btnOpenPort->setIconSize(QSize(25, 25));
         btnOpenPort->setCheckable(true);
         btnOpenPort->setChecked(false);
         btnOpenPort->setAutoDefault(false);
@@ -344,9 +350,9 @@ public:
         btnRefresh = new QPushButton(QGBSerialConfig);
         btnRefresh->setObjectName(QStringLiteral("btnRefresh"));
         btnRefresh->setGeometry(QRect(11, 160, 56, 31));
-        QIcon icon1;
-        icon1.addFile(QStringLiteral(":/action/action/reload.png"), QSize(), QIcon::Normal, QIcon::Off);
-        btnRefresh->setIcon(icon1);
+        QIcon icon2;
+        icon2.addFile(QStringLiteral(":/prefix/view-refresh.png"), QSize(), QIcon::Normal, QIcon::Off);
+        btnRefresh->setIcon(icon2);
         btnRefresh->setIconSize(QSize(20, 20));
 
         gridLayout_2->addWidget(QGBSerialConfig, 1, 2, 1, 1);
@@ -428,6 +434,8 @@ public:
         statusBar->setObjectName(QStringLiteral("statusBar"));
         MainWindow->setStatusBar(statusBar);
 
+        mainToolBar->addAction(actionAbout);
+
         retranslateUi(MainWindow);
 
         btnOpenPort->setDefault(false);
@@ -439,6 +447,7 @@ public:
     void retranslateUi(QMainWindow *MainWindow)
     {
         MainWindow->setWindowTitle(QApplication::translate("MainWindow", "MainWindow", Q_NULLPTR));
+        actionAbout->setText(QApplication::translate("MainWindow", "\345\205\263\344\272\216", Q_NULLPTR));
         groupBox_2->setTitle(QApplication::translate("MainWindow", "\345\237\272\347\241\200\346\216\247\345\210\266", Q_NULLPTR));
         btnReset->setText(QApplication::translate("MainWindow", "\345\244\215\344\275\215(Ctrl+ R)", Q_NULLPTR));
 #ifndef QT_NO_SHORTCUT
