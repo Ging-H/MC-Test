@@ -9,9 +9,12 @@ st MC-SDK FOC5.4.3位置控制测试用工具
 * 说明文档还没写
 
 #### 新增功能
-修改信息显示和发送机制,使用QlistWidget显示发送和接收数据
+* 修改信息显示和发送机制,使用QlistWidget显示发送和接收数据
+* 添加速度控制
+
 #### 预览图
 ![preview](https://github.com/Ging-H/MC-Test/blob/master/preview.png)
+
 #### 特别说明
 * 5.4.3的位置控制需要先设置位置目标值,然后才能启动
 * 多次发送0周期的位置目标值,电机将不会停止
