@@ -10,6 +10,19 @@
 #include "QMetaEnum"
 #include "QTime"
 
+/** @name Fault source error codes */
+/** @{ */
+#define  MC_NO_ERROR     (uint16_t)(0x0000u)    /**< @brief No error.*/
+#define  MC_NO_FAULTS    (uint16_t)(0x0000u)    /**< @brief No error.*/
+#define  MC_FOC_DURATION (uint16_t)(0x0001u)    /**< @brief Error: FOC rate to high.*/
+#define  MC_OVER_VOLT    (uint16_t)(0x0002u)    /**< @brief Error: Software over voltage.*/
+#define  MC_UNDER_VOLT   (uint16_t)(0x0004u)    /**< @brief Error: Software under voltage.*/
+#define  MC_OVER_TEMP    (uint16_t)(0x0008u)    /**< @brief Error: Software over temperature.*/
+#define  MC_START_UP     (uint16_t)(0x0010u)    /**< @brief Error: Startup failed.*/
+#define  MC_SPEED_FDBK   (uint16_t)(0x0020u)    /**< @brief Error: Speed feedback.*/
+#define  MC_BREAK_IN     (uint16_t)(0x0040u)    /**< @brief Error: Emergency input (Over current).*/
+#define  MC_SW_ERROR     (uint16_t)(0x0080u)    /**< @brief Software Error.*/
+/** @} */
 
 namespace Ui {
 class MainWindow;
@@ -182,8 +195,105 @@ public:
         order9,
         order10,
         order11,
+        order12,
+        order13,
+        order14,
+        order15,
+        order16,
+        order17,
+        order18,
     };
     Q_ENUM(SendOrder);
+
+    enum State_t
+    {
+        IDLE = 0,             /*!< Persistent state, following state can be IDLE_START
+                               if a start motor command has been given or
+                               IDLE_ALIGNMENT if a start alignment command has been
+                               given */
+        IDLE_ALIGNMENT = 1,   /*!< "Pass-through" state containg the code to be executed
+                               only once after encoder alignment command.
+                               Next states can be ALIGN_CHARGE_BOOT_CAP or
+                               ALIGN_OFFSET_CALIB according the configuration. It
+                               can also be ANY_STOP if a stop motor command has been
+                               given. */
+
+        ALIGNMENT = 2,        /*!< Persistent state in which the encoder are properly
+                               aligned to set mechanical angle, following state can
+                               only be ANY_STOP */
+        IDLE_START = 3,       /*!< "Pass-through" state containg the code to be executed
+                               only once after start motor command.
+                               Next states can be CHARGE_BOOT_CAP or OFFSET_CALIB
+                               according the configuration. It can also be ANY_STOP
+                               if a stop motor command has been given. */
+
+        START = 4,            /*!< Persistent state where the motor start-up is intended
+                               to be executed. The following state is normally
+                               SWITCH_OVER or RUN as soon as first validated speed is
+                               detected. Another possible following state is
+                               ANY_STOP if a stop motor command has been executed */
+
+        START_RUN = 5,        /*!< "Pass-through" state, the code to be executed only
+                               once between START and RUN states itâ€™s intended to be
+                               here executed. Following state is normally  RUN but
+                               it can also be ANY_STOP  if a stop motor command has
+                               been given */
+        RUN = 6,              /*!< Persistent state with running motor. The following
+                               state is normally ANY_STOP when a stop motor command
+                               has been executed */
+        ANY_STOP = 7,         /*!< "Pass-through" state, the code to be executed only
+                               once between any state and STOP itâ€™s intended to be
+                               here executed. Following state is normally STOP */
+        STOP = 8,             /*!< Persistent state. Following state is normally
+                               STOP_IDLE as soon as conditions for moving state
+                               machine are detected */
+        STOP_IDLE = 9,        /*!< "Pass-through" state, the code to be executed only
+                               once between STOP and IDLE itâ€™s intended to be here
+                               executed. Following state is normally IDLE */
+        FAULT_NOW = 10,       /*!< Persistent state, the state machine can be moved from
+                               any condition directly to this state by
+                               STM_FaultProcessing method. This method also manage
+                               the passage to the only allowed following state that
+                               is FAULT_OVER */
+        FAULT_OVER = 11,       /*!< Persistent state where the application is intended to
+                              stay when the fault conditions disappeared. Following
+                              state is normally STOP_IDLE, state machine is moved as
+                              soon as the user has acknowledged the fault condition.
+                          */
+        ICLWAIT = 12,         /*!< Persistent state, the system is waiting for ICL
+                                 deactivation. Is not possible to run the motor if
+                                 ICL is active. Until the ICL is active the state is
+                                 forced to ICLWAIT, when ICL become inactive the state
+                                 is moved to IDLE */
+        ALIGN_CHARGE_BOOT_CAP = 13,/*!< Persistent state where the gate driver boot
+                               capacitors will be charged. Next states will be
+                               ALIGN_OFFSET_CALIB. It can also be ANY_STOP if a stop
+                               motor command has been given. */
+        ALIGN_OFFSET_CALIB = 14,/*!< Persistent state where the offset of motor currents
+                               measurements will be calibrated. Next state will be
+                               ALIGN_CLEAR. It can also be ANY_STOP if a stop motor
+                               command has been given. */
+        ALIGN_CLEAR = 15,     /*!< "Pass-through" state in which object is cleared and
+                               set for the startup.
+                               Next state will be ALIGNMENT. It can also be ANY_STOP
+                               if a stop motor command has been given. */
+        CHARGE_BOOT_CAP = 16, /*!< Persistent state where the gate driver boot
+                               capacitors will be charged. Next states will be
+                               OFFSET_CALIB. It can also be ANY_STOP if a stop motor
+                               command has been given. */
+        OFFSET_CALIB = 17,    /*!< Persistent state where the offset of motor currents
+                               measurements will be calibrated. Next state will be
+                               CLEAR. It can also be ANY_STOP if a stop motor
+                               command has been given. */
+        CLEAR = 18,           /*!< "Pass-through" state in which object is cleared and
+                               set for the startup.
+                               Next state will be START. It can also be ANY_STOP if
+                               a stop motor command has been given. */
+        SWITCH_OVER = 19,     /**< TBD */
+        WAIT_STOP_MOTOR = 20
+
+    };
+    Q_ENUM(State_t);
 
     QList<SendOrder> listOrder;
 
@@ -201,8 +311,8 @@ public:
     void delayMSec(int msec);
     void insertLog(QString &msg);
     QByteArray sendCMD(QString cmd, QString log, bool isLog = true);
-
-
+    void readProtocalFrame(QByteArray &rxBuf);
+    quint32 readFaultFlag(QByteArray &buffer);
 
 
 public slots:
@@ -238,10 +348,23 @@ private slots:
 
     void on_actionAbout_triggered();
 
+    void on_btnFaultAck_clicked();
+
+    void on_btnSpdKp_clicked();
+
+    void on_btnSpdKi_clicked();
+
+    void on_btnSpdRamp_clicked();
+
+    void on_btnStopRamp_clicked();
+
+    void on_btnSpdTarget_clicked();
+
 private:
     Ui::MainWindow *ui;
     BaseSerialComm *currentPort;   // 端口号
     QTimer *txTim;
+    QVector<QCheckBox*> multiCheckBox;
 };
 
 #endif // MAINWINDOW_H

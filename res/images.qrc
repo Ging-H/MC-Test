@@ -4,5 +4,9 @@
         <file>com_3.png</file>
         <file>com_4.png</file>
         <file>view-refresh.png</file>
+        <file>check3_faultNone.png</file>
+        <file>check3_faultNow.png</file>
+        <file>check3_faultOccurred.png</file>
+        <file>check3_ok.png</file>
     </qresource>
 </RCC>

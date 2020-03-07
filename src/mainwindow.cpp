@@ -17,11 +17,20 @@ MainWindow::MainWindow(QWidget *parent) :
     connect(currentPort,SIGNAL(errorOccurred(QSerialPort::SerialPortError)),this,SLOT(slots_errorHandler( QSerialPort::SerialPortError)));
     this->initComboBox_Config();
     txTim = new QTimer();
-    connect(txTim,SIGNAL(timeout()),this, SLOT(slots_timeoutTx()) );
+//    connect(txTim,SIGNAL(timeout()),this, SLOT(slots_timeoutTx()) );
     QApplication::setStyle(QStyleFactory::create("Fusion"));//Qt自带皮肤风格 可选 Windows,WindowsXP,WindowsVista,Fusion
     this->limitLineEdit();
     listOrder << order0;
     this->setWindowTitle("ing10-MCTest");
+
+    multiCheckBox.push_back(ui->ckbFOCD);
+    multiCheckBox.push_back(ui->ckbOverV);
+    multiCheckBox.push_back(ui->ckbUnderV);
+    multiCheckBox.push_back(ui->ckbOverH);
+    multiCheckBox.push_back(ui->ckbSU);
+    multiCheckBox.push_back(ui->ckbSFB);
+    multiCheckBox.push_back(ui->ckbOverC);
+    multiCheckBox.push_back(ui->ckbSW);
 }
 
 MainWindow::~MainWindow()
@@ -85,15 +94,16 @@ void MainWindow::on_btnOpenPort_clicked(bool checked)
             currentPort -> setRTSState(false);
             /* 配置端口的波特率等参数 */
             this->configPort();
-            txTim->start(150);    // 启动定时器
+//            txTim->start(150);    // 启动定时器
+            txTim->singleShot(80,this,SLOT(slots_timeoutTx()));
              ui->btnOpenPort->setText(tr("关闭串口"));
         }else{
             ui->btnOpenPort->setChecked(false);
         }
     }
     else{
+        txTim->stop();    // 停止定时器
         currentPort->close();
-        txTim->stop();    // 启动定时器
         ui->btnOpenPort->setText(tr("打开串口"));
     }
 }
@@ -155,22 +165,24 @@ void MainWindow::limitLineEdit()
  */
 void MainWindow::on_btnReset_clicked()
 {
-    listOrder << order10;
+    if(currentPort->isOpen())
+        listOrder << order10;
 }
 /**
  * @brief MainWindow::on_btnStart_clicked 启动电机转动
  */
 void MainWindow::on_btnStart_clicked()
 {
-    listOrder << order2;
-
+    if(currentPort->isOpen())
+        listOrder << order2;
 }
 /**
  * @brief MainWindow::on_btnStop_clicked  停止电机转动
  */
 void MainWindow::on_btnStop_clicked()
 {
-    listOrder << order3;
+    if(currentPort->isOpen())
+        listOrder << order3;
 }
 
 /**
@@ -178,14 +190,16 @@ void MainWindow::on_btnStop_clicked()
  */
 void MainWindow::on_btnStartStop_clicked()
 {
-    listOrder << order4;
+    if(currentPort->isOpen())
+        listOrder << order4;
 }
 /**
  * @brief MainWindow::on_btnAlignment_clicked 编码器模式校准对齐
  */
 void MainWindow::on_btnAlignment_clicked()
 {
-    listOrder << order5;
+    if(currentPort->isOpen())
+        listOrder << order5;
 }
 
 /**
@@ -193,15 +207,16 @@ void MainWindow::on_btnAlignment_clicked()
  */
 void MainWindow::on_btnPosKp_clicked()
 {
-    listOrder << order6;
+    if(currentPort->isOpen())
+        listOrder << order6;
 }
 /**
  * @brief MainWindow::on_btnPosKi_clicked  设置位置环Ki
  */
 void MainWindow::on_btnPosKi_clicked()
 {
-    listOrder << order7;
-
+    if(currentPort->isOpen())
+        listOrder << order7;
 }
 
 /**
@@ -209,7 +224,8 @@ void MainWindow::on_btnPosKi_clicked()
  */
 void MainWindow::on_btnPosKd_clicked()
 {
-    listOrder << order8;
+    if(currentPort->isOpen())
+        listOrder << order8;
 }
 
 /**
@@ -217,8 +233,58 @@ void MainWindow::on_btnPosKd_clicked()
  */
 void MainWindow::on_btnRamp_clicked()
 {
-    listOrder << order9;
+    if(currentPort->isOpen())
+        listOrder << order9;
+}
 
+/**
+ * @brief MainWindow::on_btnFaultAck_clicked 应答错误
+ */
+void MainWindow::on_btnFaultAck_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order12;
+}
+
+/**
+ * @brief MainWindow::on_btnSpdKp_clicked 发送速度环的Kp
+ */
+void MainWindow::on_btnSpdKp_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order14;
+}
+/**
+ * @brief MainWindow::on_btnSpdKi_clicked 发送速度环的Ki
+ */
+void MainWindow::on_btnSpdKi_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order15;
+}
+/**
+ * @brief MainWindow::on_btnSpdRamp_clicked  执行速度Ramp
+ */
+void MainWindow::on_btnSpdRamp_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order16;
+}
+/**
+ * @brief MainWindow::on_btnStopRamp_clicked 停止Ramp
+ */
+void MainWindow::on_btnStopRamp_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order17;
+}
+/**
+ * @brief MainWindow::on_btnSpdTarget_clicked 发送速度目标值
+ */
+void MainWindow::on_btnSpdTarget_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order18;
 }
 
 /**
@@ -229,133 +295,255 @@ void MainWindow::slots_timeoutTx()
     SendOrder currentOrder = listOrder.at(0);
     QString cmd ;
     QString log ;
+    QByteArray rxBuf;
 
-    switch(currentOrder){
-    case order0:{/* 读取当前速度 */
-        cmd = "22 01 1E";
-        log = "速度值" ;
-        QByteArray rxBuf;
+    if(currentPort->isOpen()){
+        switch(currentOrder){
+        case order0:{/* 读取当前速度 */
+            cmd = "22 01 1E";
+            log = "速度值" ;
 
-        /* 读取当前速度 */
-        rxBuf = this->sendCMD(cmd, log, false);
-        if( !rxBuf.isEmpty()){
-            qint32 spd = readSpd(rxBuf);
-            ui->spbSpeed->setValue(spd);
+            /* 读取当前速度 */
+            rxBuf = this->sendCMD(cmd, log, false);
+            if( !rxBuf.isEmpty()){
+                qint32 spd = readSpd(rxBuf);
+                ui->spbSpeed->setValue(spd);
+            }
+            listOrder<<order1;
+            break;}
+
+        case order1:{/* 读取当前位置 */
+            cmd = "22 01 83";
+            log = " 读取位置值 " ;
+            rxBuf = this->sendCMD(cmd, log, false);
+
+            if( !rxBuf.isEmpty()){
+                float pos = readPos(rxBuf);
+                ui->spbCurrentPos->setValue( pos/FACTOR_RAD_ROUND );
+            }
+            listOrder<<order11;
+            break;}
+        case order2:{
+            cmd = "23 01 01";
+            log = "启动电机转动";
+            this->sendCMD(cmd, log);
+            break;}
+        case order3:{
+            cmd = "23 01 02";
+            log = "停止电机转动";
+            this->sendCMD(cmd, log);
+            break;}
+        case order4:{
+            cmd = "23 01 06";
+            log = "启动/停止电机转动";
+            this->sendCMD(cmd, log);
+            break;}
+        case order5:{
+            cmd = "23 01 08";
+            log = "编码器模式校准对齐";
+            this->sendCMD(cmd, log);
+            break;}
+        case order6:{
+            // 写寄存器 ，位置环Kp
+            cmd = "21 03 86 ";
+            log = "设置位置环PID-Kp";
+            quint16 positionPID = ui->spbPosKp->value();
+
+            QByteArray tmpByteArray ;
+            tmpByteArray.append((quint8)(positionPID & 0x00FF));
+            tmpByteArray.append((quint8)(positionPID >>8 ));
+            cmd.append(tmpByteArray.toHex(' ').toUpper());
+
+            this->sendCMD(cmd, log);
+            break;}
+        case order7:{// 写寄存器 ，位置环Ki
+            cmd = "21 03 87 ";
+            log = "设置位置环PID-Ki";
+            quint16 positionPID = ui->spbPosKi->value();
+
+            QByteArray tmpByteArray ;
+            tmpByteArray.append((quint8)(positionPID & 0x00FF));
+            tmpByteArray.append((quint8)(positionPID >>8 ));
+            cmd.append(tmpByteArray.toHex(' ').toUpper());
+
+            this->sendCMD(cmd, log);
+            break;}
+        case order8:{
+            // 写寄存器 ，位置环Kd
+            cmd = "21 03 88 ";
+            log = "设置位置环PID-Kd";
+            quint16 positionPID = ui->spbPosKd->value();
+
+            QByteArray tmpByteArray ;
+            tmpByteArray.append((quint8)(positionPID & 0x00FF));
+            tmpByteArray.append((quint8)(positionPID >>8 ));
+            cmd.append(tmpByteArray.toHex(' ').toUpper());
+
+            this->sendCMD(cmd, log);
+            break;}
+        case order9:{
+            union FloatToU32{
+                quint8 U8[4];
+                float   Float;
+            }data;
+
+            cmd = "32 08 "; // 写寄存器 ，位置环Kd
+            QByteArray txBuf ;
+
+            /* 目标转数  */
+            data.Float = (float)ui->spbPosTarget->value() * FACTOR_RAD_ROUND;// 转数*6.28 -> 弧度
+            txBuf.append( (const char *)&data.U8, 4 );
+
+            /* 运动周期 单位是 s */
+            float posDuration = ui->spbPosDuration->value();
+            data.Float= (float)posDuration;
+            txBuf.append( (const char *)&data.U8, 4 );
+
+            QString log = "位置控制";
+            if( posDuration < 0.01f){
+                log = "Position following";
+            }else{
+                log = "Position movement";
+            }
+            cmd.append(txBuf.toHex(' ').toUpper());
+            this->sendCMD(cmd, log);
+            break;}
+        case order10:{
+            ui->spbSpeed->setValue(0); // reset Speed value
+            cmd = "23 01 04";
+            log = "目标控制板复位";
+            this->sendCMD(cmd, log);
+            break;}
+
+        case order11:{ // 读错误状态
+            cmd = "22 01 01";
+            log = "错误状态" ;
+
+            /* 读取Fault */
+            rxBuf = this->sendCMD(cmd, log, false);
+            if( !rxBuf.isEmpty()){
+                quint16 faultNow;
+                quint16 faultOver;
+                quint32 fault = this->readFaultFlag(rxBuf);
+
+                faultNow = fault>>16;
+                faultOver = (quint16)fault;
+
+                if(faultNow){
+                    ui->ckbStatus->setCheckState(Qt::Checked);
+                }else if(faultOver){
+                    ui->ckbStatus->setCheckState(Qt::PartiallyChecked);
+                }else ui->ckbStatus->setCheckState(Qt::Unchecked);
+
+                foreach(QCheckBox* ckbFault,  multiCheckBox){
+                    if( faultNow & 0x0001){ //
+                        ckbFault->setCheckState(Qt::Checked);
+                    }else if(faultOver & 0x0001) {
+                        ckbFault->setCheckState(Qt::PartiallyChecked);
+                    }else{
+                        ckbFault->setCheckState(Qt::Unchecked);
+                    }
+                    faultNow  >>= 1;
+                    faultOver >>= 1;
+                }
+            }
+            listOrder<<order13;
+            break;}
+        case order12:{// 错误应答
+            cmd = "23 01 07";
+            log = "错误应答";
+            this->sendCMD(cmd, log);
+            break;}
+        case order13:{// 读运行状态
+            cmd = "22 01 02";
+            log = "读取运行状态";
+
+            /* 读取State */
+            rxBuf = this->sendCMD(cmd, log, false);
+            if( !rxBuf.isEmpty()){
+                State_t state = (State_t)rxBuf.at(2);
+                QMetaEnum mtaEnum = QMetaEnum::fromType<MainWindow::State_t>();
+                ui->ckbStatus->setText(mtaEnum.key(state));
+            }
+            listOrder<<order0;
+            break;}
+
+        case order14:{
+            // 写寄存器 ，位置环Kp
+            cmd = "21 03 05 ";
+            log = "设置速度环PID-Kp";
+            quint16 speedPID = ui->spbSpdKp->value();
+
+            QByteArray tmpByteArray ;
+            tmpByteArray.append((quint8)(speedPID & 0x00FF));
+            tmpByteArray.append((quint8)(speedPID >>8 ));
+            cmd.append(tmpByteArray.toHex(' ').toUpper());
+
+            this->sendCMD(cmd, log);
+            break;}
+        case order15:{// 写寄存器 ，位置环Ki
+            cmd = "21 03 06 ";
+            log = "设置速度环PID-Ki";
+            quint16 speedPID = ui->spbSpdKi->value();
+
+            QByteArray tmpByteArray ;
+            tmpByteArray.append((quint8)(speedPID & 0x00FF));
+            tmpByteArray.append((quint8)(speedPID >>8 ));
+            cmd.append(tmpByteArray.toHex(' ').toUpper());
+
+            this->sendCMD(cmd, log);
+            break;}
+        case order16:{// 速度Ramp
+            cmd = "27 06 ";
+            log = "速度Ramp";
+            QByteArray txBuf ;
+
+            /* 目标转数  */
+            qint32 spd = (qint32)ui->spbSpdRampTarget->value();// 目标速度值
+            txBuf.append( spd & 0xFF);
+            txBuf.append((spd>>8)  & 0xFF);
+            txBuf.append((spd>>16) & 0xFF);
+            txBuf.append((spd>>24) & 0xFF);
+
+            /* 运动周期 单位是 ms */
+            qint16 spdDuration = (qint16)ui->spbSpdDuration->value();
+            txBuf.append( spdDuration & 0xFF);
+            txBuf.append( (spdDuration>>8) & 0xFF);
+
+            cmd.append(txBuf.toHex(' ').toUpper());
+            this->sendCMD(cmd, log);
+            break;}
+
+        case order17:{
+            cmd = "23 01 03";
+            log = "停止Ramp";
+            this->sendCMD(cmd, log);
+            break;}
+        case order18:{
+            // 速度目标值
+            cmd = "21 05 5B ";
+            log = "设置速度目标值";
+            quint32 speedTarget = (quint32) ui->spbSpdTarget->value();
+
+            QByteArray txBuf ;
+
+            txBuf.append( speedTarget & 0xFF);
+            txBuf.append((speedTarget>>8)  & 0xFF);
+            txBuf.append((speedTarget>>16) & 0xFF);
+            txBuf.append((speedTarget>>24) & 0xFF);
+
+            cmd.append(txBuf.toHex(' ').toUpper());
+
+            this->sendCMD(cmd, log);
+            break;}
+        default:break;
         }
 
-        cmd.clear();
-        cmd = "22 01 83";
-        log = " 读取位置值 " ;
-        rxBuf .clear();
-        rxBuf = this->sendCMD(cmd, log, false);
-
-        if( !rxBuf.isEmpty()){
-            float pos = readPos(rxBuf);
-            ui->spbCurrentPos->setValue( pos/FACTOR_RAD_ROUND );
+        listOrder.removeFirst();
+        if(listOrder.isEmpty()){
+            listOrder << order0;
         }
-        break;}
-    case order2:{/* 读取当前位置 */
-        cmd = "23 01 01";
-        log = "启动电机转动";
-        this->sendCMD(cmd, log);
-        break;}
-    case order3:{
-        cmd = "23 01 02";
-        log = "停止电机转动";
-        this->sendCMD(cmd, log);
-        break;}
-    case order4:{
-        cmd = "23 01 06";
-        log = "启动/停止电机转动";
-        this->sendCMD(cmd, log);
-        break;}
-    case order5:{
-        cmd = "23 01 08";
-        log = "编码器模式校准对齐";
-        this->sendCMD(cmd, log);
-        break;}
-    case order6:{
-        // 写寄存器 ，位置环Kp
-        cmd = "21 03 86 ";
-        log = "设置位置环PID-Kp";
-        quint16 positionPID = ui->spbPosKp->value();
-
-        QByteArray tmpByteArray ;
-        tmpByteArray.append((quint8)(positionPID & 0x00FF));
-        tmpByteArray.append((quint8)(positionPID >>8 ));
-        cmd.append(tmpByteArray.toHex(' ').toUpper());
-
-        this->sendCMD(cmd, log);
-        break;}
-    case order7:{// 写寄存器 ，位置环Ki
-        cmd = "21 03 87 ";
-        log = "设置位置环PID-Ki";
-        quint16 positionPID = ui->spbPosKi->value();
-
-        QByteArray tmpByteArray ;
-        tmpByteArray.append((quint8)(positionPID & 0x00FF));
-        tmpByteArray.append((quint8)(positionPID >>8 ));
-        cmd.append(tmpByteArray.toHex(' ').toUpper());
-
-        this->sendCMD(cmd, log);
-        break;}
-    case order8:{
-        // 写寄存器 ，位置环Kd
-        cmd = "21 03 88 ";
-        log = "设置位置环PID-Kd";
-        quint16 positionPID = ui->spbPosKd->value();
-
-        QByteArray tmpByteArray ;
-        tmpByteArray.append((quint8)(positionPID & 0x00FF));
-        tmpByteArray.append((quint8)(positionPID >>8 ));
-        cmd.append(tmpByteArray.toHex(' ').toUpper());
-
-        this->sendCMD(cmd, log);
-        break;}
-    case order9:{
-        union FloatToU32{
-            quint8 U8[4];
-            float   Float;
-        }data;
-
-        cmd = "32 08 "; // 写寄存器 ，位置环Kd
-        QByteArray txBuf ;
-
-        /* 目标转数  */
-        data.Float = (float)ui->spbPosTarget->value() * FACTOR_RAD_ROUND;// 转数*6.28 -> 弧度
-        txBuf.append( (const char *)&data.U8, 4 );
-
-        /* 运动周期 单位是 s */
-        float posDuration = ui->spbPosDuration->value();
-        data.Float= (float)posDuration;
-        txBuf.append( (const char *)&data.U8, 4 );
-
-        QString log = "位置控制";
-        if( posDuration < 0.01f){
-            log = "Position following";
-        }else{
-            log = "Position movement";
-        }
-        cmd.append(txBuf.toHex(' ').toUpper());
-        this->sendCMD(cmd, log);
-        break;}
-    case order10:{
-
-        ui->spbSpeed->setValue(0); // reset Speed value
-        cmd = "23 01 04";
-        log = "目标控制板复位";
-        this->sendCMD(cmd, log);
-        break;}
-    case order11:
-
-        break;
-
-    default:break;
-    }
-
-    listOrder.removeFirst();
-    if(listOrder.isEmpty()){
-        listOrder << order0;
+        txTim->singleShot(150,this,SLOT(slots_timeoutTx()));
     }
 }
 
@@ -372,7 +560,7 @@ void MainWindow::delayMSec(int msec)
  */
 bool MainWindow::checkCRC(QByteArray &buffer)
 {
-    if(buffer.size()<1 )
+    if(buffer.size()<3 )// 数据帧长度最小为3
         return false ;
     qint32 size = buffer.size()-1;
     quint16 sum = 0;
@@ -427,6 +615,18 @@ float MainWindow::readPos(QByteArray &buffer)
     return pos;
 }
 /**
+ * @brief MainWindow::readSpd 读取当前位置值
+ * @param buffer 接收数据缓存
+ * @return float 位置值
+ */
+quint32 MainWindow::readFaultFlag(QByteArray &buffer)
+{
+    if( buffer.size() != 7) return 0 ;
+    quint32 fault = 0;
+    fault = (quint8)buffer.at(2) + ((quint8)buffer.at(3)<<8) + ((quint8)buffer.at(4)<<16) + ((quint8)buffer.at(5)<<24);
+    return fault;
+}
+/**
  * @brief MainWindow::calcCRC  计算校验码
  * @param buffer 待校验数据
  * @return 校验码
@@ -451,8 +651,6 @@ void MainWindow::appendCRC(QByteArray &buffer)
 
 void MainWindow::on_btnOtherCMD_clicked()
 {
-    listOrder << order11;
-
     quint8 motorNum = ui->cbbMotorNum->currentIndex();
     quint8 frameID  = ui->cbbFrameID->currentIndex();
     if(frameID == 0){
@@ -499,14 +697,13 @@ void MainWindow::on_btnOtherCMD_clicked()
     txBuf.prepend( (motorNum<<5) | frameID );// start
     this->appendCRC(txBuf); // crc
 
+    if(!currentPort->isOpen())return ; // 在发送之前再检查一次是否已经打开串口
     currentPort->write(txBuf, txBuf.size());
-    if(currentPort->waitForBytesWritten(30)){
-        currentPort->waitForReadyRead(30);
-
-        rxBuf.append(currentPort->readAll());
-        ui->txtOtherRx->setText( rxBuf.toHex(' ').toUpper() );
-        rxBuf.clear();
-    }
+    currentPort->waitForReadyRead(30);
+//        rxBuf.append(currentPort->readAll());
+    this->readProtocalFrame(rxBuf);
+    ui->txtOtherRx->setText( rxBuf.toHex(' ').toUpper() );
+    rxBuf.clear();
     ui->statusBar->showMessage(" Tx: " + txBuf.toHex(' ').toUpper() + " Rx:" + ui->txtOtherRx->text(),5000);
 }
 /**
@@ -546,10 +743,14 @@ QByteArray MainWindow::sendCMD(QString cmd, QString log, bool isLog)
 
     txBuf = QByteArray::fromHex(cmd.toLocal8Bit());
     this->appendCRC(txBuf);
+    if(!currentPort->isOpen())return rxBuf; // 在发送之前再检查一次是否已经打开串口
     currentPort->write(txBuf, txBuf.size());
     currentPort->waitForReadyRead(30);
-    delayMSec(30);
-    rxBuf = currentPort->readAll(); // read all bytes form contorl board;
+//    delayMSec(30);
+//    if(!currentPort->isOpen())return rxBuf; // 在发送之前再检查一次是否已经打开串口
+//    rxBuf = currentPort->readAll(); // read all bytes form contorl board;
+    this->readProtocalFrame(rxBuf);
+
     isCRCOk = this->checkCRC(rxBuf);
     QByteArray retArray = rxBuf;
     if(!isCRCOk){
@@ -582,3 +783,32 @@ void MainWindow::on_actionAbout_triggered()
     path += "/helpFile.pdf"; // 当前路径下的.pdf文档
     QDesktopServices::openUrl(QUrl::fromLocalFile(path));
 }
+/**
+ * @brief MainWindow::readProtocalFrame 读取一帧数据
+ * @return 数据缓存
+ */
+void MainWindow::readProtocalFrame(QByteArray &rxBuf)
+{
+    int  bufferSize = 0;
+    int  payloadLength = 0;
+
+    QTime dieTime = QTime::currentTime().addMSecs(50); // 50ms
+    while(1){
+        rxBuf.append(currentPort->readAll());
+        bufferSize = rxBuf.size();
+        if( bufferSize >= 2 ){
+            payloadLength = rxBuf.at(1)+3;
+        }
+        if(bufferSize != 0){
+            if(bufferSize >= payloadLength){
+
+                break;
+            }
+        }else{// 50ms 内缓存长度为0，就直接返回
+            if(QTime::currentTime() > dieTime){
+                break;
+            }
+        }
+    }
+}
+
