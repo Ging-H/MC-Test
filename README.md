@@ -12,6 +12,8 @@ st MC-SDK FOC5.4.3位置控制测试用工具
 * 修改信息显示和发送机制,使用QlistWidget显示发送和接收数据
 * 添加速度控制
 * 添加状态显示和控制
+* 添加电流控制
+* 添加速度和电流切换
 
 #### 预览图
 ![preview](https://github.com/Ging-H/MC-Test/blob/master/preview.png)
