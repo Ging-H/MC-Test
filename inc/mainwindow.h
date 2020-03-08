@@ -202,6 +202,14 @@ public:
         order16,
         order17,
         order18,
+        order19,
+        order20,
+        order21,
+        order22,
+        order23,
+        order24,
+        order25,
+        order26,
     };
     Q_ENUM(SendOrder);
 
@@ -313,6 +321,7 @@ public:
     QByteArray sendCMD(QString cmd, QString log, bool isLog = true);
     void readProtocalFrame(QByteArray &rxBuf);
     quint32 readFaultFlag(QByteArray &buffer);
+    qint16 readCurent(QByteArray &buffer);
 
 
 public slots:
@@ -359,6 +368,18 @@ private slots:
     void on_btnStopRamp_clicked();
 
     void on_btnSpdTarget_clicked();
+
+    void on_btnCurrentRef_clicked();
+
+    void on_btnIqKp_clicked();
+
+    void on_btnIqKi_clicked();
+
+    void on_btnIdKp_clicked();
+
+    void on_btnIdKi_clicked();
+
+    void on_cbbCtrlMode_currentIndexChanged(int index);
 
 private:
     Ui::MainWindow *ui;

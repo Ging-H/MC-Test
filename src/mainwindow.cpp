@@ -95,7 +95,7 @@ void MainWindow::on_btnOpenPort_clicked(bool checked)
             /* 配置端口的波特率等参数 */
             this->configPort();
 //            txTim->start(150);    // 启动定时器
-            txTim->singleShot(80,this,SLOT(slots_timeoutTx()));
+            txTim->singleShot(50,this,SLOT(slots_timeoutTx()));
              ui->btnOpenPort->setText(tr("关闭串口"));
         }else{
             ui->btnOpenPort->setChecked(false);
@@ -288,6 +288,58 @@ void MainWindow::on_btnSpdTarget_clicked()
 }
 
 /**
+ * @brief MainWindow::on_btnCurrentRef_clicked  发送电流目标值，Iq，Id
+ */
+void MainWindow::on_btnCurrentRef_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order19;
+}
+/**
+ * @brief MainWindow::on_btnIqKp_clicked 设置Iq Kp
+ */
+void MainWindow::on_btnIqKp_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order20;
+}
+
+/**
+ * @brief MainWindow::on_btnIqKi_clicked Iq Ki
+ */
+void MainWindow::on_btnIqKi_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order21;
+}
+/**
+ * @brief MainWindow::on_btnIdKp_clicked Id Kp
+ */
+void MainWindow::on_btnIdKp_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order22;
+}
+/**
+ * @brief MainWindow::on_btnIdKi_clicked  Id Ki
+ */
+void MainWindow::on_btnIdKi_clicked()
+{
+    if(currentPort->isOpen())
+        listOrder << order23;
+}
+/**
+ * @brief MainWindow::on_cbbCtrlMode_currentIndexChanged 改变控制模式
+ * @param index 控制模式
+ */
+void MainWindow::on_cbbCtrlMode_currentIndexChanged(int index)
+{
+    index = index;
+    if(currentPort->isOpen())
+        listOrder << order26;
+}
+
+/**
  * @brief MainWindow::slots_timeoutTx 超时读取速度值
  */
 void MainWindow::slots_timeoutTx()
@@ -322,6 +374,28 @@ void MainWindow::slots_timeoutTx()
                 ui->spbCurrentPos->setValue( pos/FACTOR_RAD_ROUND );
             }
             listOrder<<order11;
+            break;}
+        case order24:{/* 读取扭矩 Iq */
+            cmd = "22 01 1F";
+            log = " 读取Turque Iq " ;
+            rxBuf = this->sendCMD(cmd, log, false);
+
+            if( !rxBuf.isEmpty()){
+                qint16 torque = readCurent(rxBuf);
+                ui->spbTorque->setValue( torque );
+            }
+            listOrder<<order25;
+            break;}
+        case order25:{/* 读取Flux Id */
+            cmd = "22 01 20";
+            log = " 读取Flux Id " ;
+            rxBuf = this->sendCMD(cmd, log, false);
+
+            if( !rxBuf.isEmpty()){
+                qint16 flux = readCurent(rxBuf);
+                ui->spbFlux->setValue( flux );
+            }
+            listOrder<<order0;
             break;}
         case order2:{
             cmd = "23 01 01";
@@ -465,7 +539,7 @@ void MainWindow::slots_timeoutTx()
                 QMetaEnum mtaEnum = QMetaEnum::fromType<MainWindow::State_t>();
                 ui->ckbStatus->setText(mtaEnum.key(state));
             }
-            listOrder<<order0;
+            listOrder<<order24;
             break;}
 
         case order14:{
@@ -536,6 +610,84 @@ void MainWindow::slots_timeoutTx()
 
             this->sendCMD(cmd, log);
             break;}
+        case order19:{
+            // 电流目标值
+            cmd = "2A 04 ";
+            log = "设置电流目标值";
+
+            QByteArray txBuf ;
+
+            quint16 torqueIq = (quint32) ui->spbIqRef->value();
+            txBuf.append( torqueIq & 0xFF);
+            txBuf.append((torqueIq>>8)  & 0xFF);
+
+            quint16 fluxId = (quint32) ui->spbIdRef->value();
+            txBuf.append( fluxId & 0xFF);
+            txBuf.append((fluxId>>8) & 0xFF);
+
+            cmd.append(txBuf.toHex(' ').toUpper());
+            this->sendCMD(cmd, log);
+            break;}
+        case order20:{
+            cmd = "21 03 09 ";
+            log = "设置扭矩 Iq Kp";
+            quint16 IqPID = ui->spbIqKp->value();
+
+            QByteArray tmpByteArray ;
+            tmpByteArray.append((quint8)(IqPID & 0x00FF));
+            tmpByteArray.append((quint8)(IqPID >>8 ));
+            cmd.append(tmpByteArray.toHex(' ').toUpper());
+
+            this->sendCMD(cmd, log);
+            break;}
+        case order21:{
+            cmd = "21 03 0A ";
+            log = "设置扭矩 Iq Ki";
+            quint16 IqPID = ui->spbIqKi->value();
+
+            QByteArray tmpByteArray ;
+            tmpByteArray.append((quint8)(IqPID & 0x00FF));
+            tmpByteArray.append((quint8)(IqPID >>8 ));
+            cmd.append(tmpByteArray.toHex(' ').toUpper());
+
+            this->sendCMD(cmd, log);
+            break;}
+        case order22:{
+            cmd = "21 03 0D ";
+            log = "设置Flux Id Kp";
+            quint16 IdPID = ui->spbIdKp->value();
+
+            QByteArray tmpByteArray ;
+            tmpByteArray.append((quint8)(IdPID & 0x00FF));
+            tmpByteArray.append((quint8)(IdPID >>8 ));
+            cmd.append(tmpByteArray.toHex(' ').toUpper());
+
+            this->sendCMD(cmd, log);
+            break;}
+        case order23:{
+            cmd = "21 03 0E ";
+            log = "设置Flux Id Ki";
+            quint16 IdPID = ui->spbIdKi->value();
+
+            QByteArray tmpByteArray ;
+            tmpByteArray.append((quint8)(IdPID & 0x00FF));
+            tmpByteArray.append((quint8)(IdPID >>8 ));
+            cmd.append(tmpByteArray.toHex(' ').toUpper());
+
+            this->sendCMD(cmd, log);
+            break;}
+        case order26:
+            if( ui->cbbCtrlMode->currentIndex() == 0){
+                cmd = "21 02 03 01";
+                log = "设置为速度模式";
+            }
+            else {
+                cmd = "21 02 03 00";
+                log = "设置为Torque模式";
+            }
+            this->sendCMD(cmd, log);
+            break;
+
         default:break;
         }
 
@@ -614,10 +766,23 @@ float MainWindow::readPos(QByteArray &buffer)
     float pos = aa.tmpFloat;
     return pos;
 }
+
+/**
+ * @brief MainWindow::readCurent 读取电流值
+ * @param buffer  接收数据缓存
+ * @return  电流值
+ */
+qint16 MainWindow::readCurent(QByteArray &buffer)
+{
+    qint16 current = 0;
+    if( buffer.size() != 5) return 0;
+    current = buffer.at(2) + (buffer.at(3)<<8);
+    return current;
+}
 /**
  * @brief MainWindow::readSpd 读取当前位置值
  * @param buffer 接收数据缓存
- * @return float 位置值
+ * @return float 错误状态
  */
 quint32 MainWindow::readFaultFlag(QByteArray &buffer)
 {
