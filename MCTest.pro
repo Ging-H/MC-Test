@@ -6,6 +6,7 @@
 
 QT       += core gui
 QT       += serialport
+QT       += printsupport
 
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
@@ -27,15 +28,20 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         src/main.cpp \
         src/mainwindow.cpp \
-        src/baseserialcomm.cpp
+        src/baseserialcomm.cpp \
+        src/qcustomplot.cpp \
+        src/curve.cpp
 
 HEADERS += \
         inc/mainwindow.h \
-        inc/baseserialcomm.h
+        inc/baseserialcomm.h \
+        inc/qcustomplot.h \
+        inc/curve.h
 
 
 FORMS += \
-        ui/mainwindow.ui
+        ui/mainwindow.ui \
+        ui/curve.ui
 #RESOURCES += res/images.qrc
 
 #RC_ICONS = /res/general/ing10.ico
@@ -45,7 +51,7 @@ UI_DIR += ./ui
 # 头文件路径
 INCLUDEPATH +=  inc
 
-RC_ICONS = res/electric-motor.ico
+RC_ICONS = res/general/electric-motor.ico
 
 # 配置输出路径: debug和release模式下的输出路径
 # 配置动态链接库的路径: debug和release模式下的dll路径
@@ -62,3 +68,6 @@ DESTDIR = ./exe
 #PRECOMPILED_HEADER += inc/dac.h \
 #                      inc/mbserialmaster.h \
 #                      inc/baseserialcomm.h
+
+RESOURCES += \
+    res/images.qrc

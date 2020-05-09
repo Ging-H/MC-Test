@@ -24,6 +24,7 @@
 #define  MC_SW_ERROR     (uint16_t)(0x0080u)    /**< @brief Software Error.*/
 /** @} */
 
+#define INTERVALTIME  50
 namespace Ui {
 class MainWindow;
 }
@@ -304,6 +305,9 @@ public:
     Q_ENUM(State_t);
 
     QList<SendOrder> listOrder;
+    quint8 style = 0;
+
+    quint8 loadStyle();
 
     void initComboBox_Config();
     void configPort();
@@ -323,6 +327,9 @@ public:
     quint32 readFaultFlag(QByteArray &buffer);
     qint16 readCurent(QByteArray &buffer);
 
+signals:
+    void signals_updateSpeedGraph(qint32 spd);
+    void signals_updatePositionGraph(float pos);
 
 public slots:
     void slots_errorHandler(QSerialPort::SerialPortError error);
@@ -380,6 +387,15 @@ private slots:
     void on_btnIdKi_clicked();
 
     void on_cbbCtrlMode_currentIndexChanged(int index);
+
+    void on_actionCurve_triggered();
+
+    void on_actionbalck_triggered();
+
+    void on_actionorigenral_triggered();
+
+protected:
+    void closeEvent(QCloseEvent *event);
 
 private:
     Ui::MainWindow *ui;

@@ -1,12 +1,26 @@
 <RCC>
-    <qresource prefix="/prefix">
-        <file>about.png</file>
-        <file>com_3.png</file>
-        <file>com_4.png</file>
-        <file>view-refresh.png</file>
-        <file>check3_faultNone.png</file>
-        <file>check3_faultNow.png</file>
-        <file>check3_faultOccurred.png</file>
-        <file>check3_ok.png</file>
+    <qresource prefix="/general">
+        <file>general/ing10.ico</file>
+        <file>general/com_disconnect.png</file>
+        <file>general/arrow_down_1.png</file>
+        <file>general/com_connect_1.png</file>
+        <file>general/about.png</file>
+        <file>general/check3_faultNone.png</file>
+        <file>general/check3_faultNow.png</file>
+        <file>general/check3_faultOccurred.png</file>
+        <file>general/check3_ok.png</file>
+        <file>general/Curve.png</file>
+        <file>general/electric-motor.ico</file>
+        <file>general/view-refresh.png</file>
+        <file>general/Paused.png</file>
+        <file>general/play.png</file>
+        <file>general/play_1.png</file>
+        <file>general/Save_2.png</file>
+        <file>general/selection_1.png</file>
+        <file>general/pointer.png</file>
+        <file>general/Style.png</file>
+    </qresource>
+    <qresource prefix="/theme">
+        <file>blackOrange.css</file>
     </qresource>
 </RCC>

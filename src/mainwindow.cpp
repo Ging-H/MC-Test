@@ -5,6 +5,8 @@
 #include <QDir>
 #include <QDesktopServices>
 #include <QUrl>
+#include "curve.h"
+#include <QSettings>
 
 #define FACTOR_RAD_ROUND  6.283185f// 弧度 单位转换成转数单位
 
@@ -14,30 +16,33 @@ MainWindow::MainWindow(QWidget *parent) :
 {
     ui->setupUi(this);
     currentPort = new BaseSerialComm();
-    connect(currentPort,SIGNAL(errorOccurred(QSerialPort::SerialPortError)),this,SLOT(slots_errorHandler( QSerialPort::SerialPortError)));
+    connect(currentPort, SIGNAL(errorOccurred(QSerialPort::SerialPortError)),this,SLOT(slots_errorHandler( QSerialPort::SerialPortError)));
     this->initComboBox_Config();
     txTim = new QTimer();
-//    connect(txTim,SIGNAL(timeout()),this, SLOT(slots_timeoutTx()) );
-    QApplication::setStyle(QStyleFactory::create("Fusion"));//Qt自带皮肤风格 可选 Windows,WindowsXP,WindowsVista,Fusion
     this->limitLineEdit();
     listOrder << order0;
-    this->setWindowTitle("ing10-MCTest");
 
-    multiCheckBox.push_back(ui->ckbFOCD);
-    multiCheckBox.push_back(ui->ckbOverV);
-    multiCheckBox.push_back(ui->ckbUnderV);
-    multiCheckBox.push_back(ui->ckbOverH);
-    multiCheckBox.push_back(ui->ckbSU);
-    multiCheckBox.push_back(ui->ckbSFB);
-    multiCheckBox.push_back(ui->ckbOverC);
-    multiCheckBox.push_back(ui->ckbSW);
+    /* ui初始化 */
+    this->setWindowTitle("硬石电子-FOC5.4.3测试工具");
+    QApplication::setStyle(QStyleFactory::create("Fusion"));//Qt自带皮肤风格 可选 Windows,WindowsXP,WindowsVista,Fusion
+    if(this->loadStyle() == 0 ){
+        emit ui->actionbalck->triggered();
+    }else emit ui->actionorigenral->triggered();
+
+    multiCheckBox << ui->ckbFOCD;
+    multiCheckBox << ui->ckbOverV;
+    multiCheckBox << ui->ckbUnderV;
+    multiCheckBox << ui->ckbOverH;
+    multiCheckBox << ui->ckbSU;
+    multiCheckBox << ui->ckbSFB;
+    multiCheckBox << ui->ckbOverC;
+    multiCheckBox << ui->ckbSW;
 }
 
 MainWindow::~MainWindow()
 {
     delete ui;
 }
-
 
 /**
  * @brief MainWindow::initComboBox_Config 初始化combobox的下拉列表
@@ -94,8 +99,8 @@ void MainWindow::on_btnOpenPort_clicked(bool checked)
             currentPort -> setRTSState(false);
             /* 配置端口的波特率等参数 */
             this->configPort();
-//            txTim->start(150);    // 启动定时器
-            txTim->singleShot(50,this,SLOT(slots_timeoutTx()));
+//            txTim->start(INTERVALTIME);    // 启动定时器
+            txTim->singleShot(INTERVALTIME,this,SLOT(slots_timeoutTx()));
              ui->btnOpenPort->setText(tr("关闭串口"));
         }else{
             ui->btnOpenPort->setChecked(false);
@@ -360,6 +365,7 @@ void MainWindow::slots_timeoutTx()
             if( !rxBuf.isEmpty()){
                 qint32 spd = readSpd(rxBuf);
                 ui->spbSpeed->setValue(spd);
+                emit signals_updateSpeedGraph(spd);
             }
             listOrder<<order1;
             break;}
@@ -371,7 +377,9 @@ void MainWindow::slots_timeoutTx()
 
             if( !rxBuf.isEmpty()){
                 float pos = readPos(rxBuf);
+                pos /= FACTOR_RAD_ROUND;
                 ui->spbCurrentPos->setValue( pos/FACTOR_RAD_ROUND );
+                emit signals_updatePositionGraph( pos );
             }
             listOrder<<order11;
             break;}
@@ -695,7 +703,7 @@ void MainWindow::slots_timeoutTx()
         if(listOrder.isEmpty()){
             listOrder << order0;
         }
-        txTim->singleShot(150,this,SLOT(slots_timeoutTx()));
+        txTim->singleShot(INTERVALTIME,this,SLOT(slots_timeoutTx()));
     }
 }
 
@@ -813,7 +821,6 @@ void MainWindow::appendCRC(QByteArray &buffer)
 /**
  * @brief MainWindow::on_btnOtherCMD_clicked 发送通用的指令
  */
-
 void MainWindow::on_btnOtherCMD_clicked()
 {
     quint8 motorNum = ui->cbbMotorNum->currentIndex();
@@ -977,3 +984,62 @@ void MainWindow::readProtocalFrame(QByteArray &rxBuf)
     }
 }
 
+/**
+ * @brief MainWindow::on_actionCurve_triggered  显示曲线
+ */
+void MainWindow::on_actionCurve_triggered()
+{
+    Curve *curve = new Curve ();
+    curve->show();
+    connect( this,  SIGNAL(signals_updateSpeedGraph(qint32)),
+             curve, SLOT(slots_updateSpeedGraph(qint32)) );
+    connect( this,  SIGNAL(signals_updatePositionGraph(float)),
+             curve, SLOT(slots_updatePositionGraph(float) ));
+    curve->setAttribute( Qt::WA_DeleteOnClose );
+}
+/**
+ * @brief MainWindow::on_actionbalck_triggered 切换风格
+ */
+void MainWindow::on_actionbalck_triggered()
+{
+    QFile file(":/theme/blackOrange.css");              // QSS文件
+    if (!file.open(QFile::ReadOnly)){  // 打开文件
+        return;
+    }
+    QTextStream in(&file);
+    in.setCodec("UTF-8");
+    QString qss = in.readAll();        // 读取数据
+    qApp->setStyleSheet(qss);          // 应用
+    style = 0;
+}
+/**
+ * @brief MainWindow::on_actionorigenral_triggered 切换风格
+ */
+void MainWindow::on_actionorigenral_triggered()
+{
+    /* ui初始化 */
+    qApp->setStyleSheet("");          // 应用
+    style = 1;
+}
+/**
+ * @brief closeEvent 关闭保存数据
+ * @param event
+ */
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    event = event;
+    QSettings settings("default.ini", QSettings::IniFormat);
+    settings.clear();
+    settings.setValue("Style", style);
+}
+/**
+ * @brief MainWindow::loadStyle  读取上一次设定的风格
+ * @return
+ */
+quint8 MainWindow::loadStyle()
+{
+    QSettings settings("default.ini", QSettings::IniFormat);
+    quint8 tmp(0);
+    tmp = settings.value("Style").toInt();
+    return tmp;
+}
